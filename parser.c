@@ -66,7 +66,7 @@ parse()
 		assert(token_tail, semicolon); // ;
 	}
 
-	if (token_tail->type == varsym) { // var
+	else if (token_tail->type == varsym) { // var
 		do {
 			assert(next_token(), ident); // id
 		} while (next_token()->type == comma); // ,
@@ -74,7 +74,7 @@ parse()
 		assert(token_tail, semicolon); // ;
 	}
 
-	if (token_tail->type == proceduresym) { // procedure
+	else if (token_tail->type == proceduresym) { // procedure
 		assert(next_token(), ident); // id
 		assert(next_token(), semicolon); // ;
 
@@ -87,10 +87,11 @@ parse()
 	}
 
 	/* End of program */
-	if (token_tail->type == period) // .
+	else if (token_tail->type == period) // .
 		return;
 
-	parse_statement(token_tail); // a := 1
+	else
+		parse_statement(token_tail); // a := 1
 }
 
 void
@@ -101,7 +102,7 @@ parse_statement(const token_t *token)
 		parse_expresion(next_token()); // a + 1
 	}
 
-	else if (token->type == callsym) {// call
+	else if (token->type == callsym) { // call
 		assert(next_token(), ident); // id
 		next_token();
 	}
