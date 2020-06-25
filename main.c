@@ -32,7 +32,7 @@ print_help(char **argv)
 int
 main(int argc, char *argv[])
 {
-	char *infile, *outfile = 0;
+	char *infile, *outfile = "";
 	clock_t start, finish;
 	int len;
 
@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 	 * file		-> file.out
 	 * file.pl0	-> file.out
 	 */
-	if (!outfile) {
+	if (strcmp(infile, "-") && !outfile) {
 		len = strlen(infile);
 		outfile = malloc(len + 4);
 		memcpy(outfile, infile, len);
@@ -94,10 +94,10 @@ main(int argc, char *argv[])
 	/* Almost ready for lexical analysis */
 	printf("Lexical analysis result:\n\n");
 
-	/* "" or "-" for stdout */
-	if (!(outfile[0] == 0 || (outfile[0] == '-' && outfile[1] == 0))) {
+	/* "-" for stdout */
+	if (outfile[0] == '-' && outfile[1] == 0) {
 		printf("Redirecting output to file: %s", outfile);
-		if (freopen(outfile, "w+", stdout) == 0){
+		if (freopen(outfile, "w+", stdout) == 0) {
 			perror(outfile);
 			return 1;
 		}
