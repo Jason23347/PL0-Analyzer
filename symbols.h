@@ -67,7 +67,7 @@ SYMBOL getsym();
 void token_init();
 /* Add a symbol to end of chain */
 void token_add(int ch);
-/* Print token info with format */
-void token_dump(const char *format);
+/* Print token info */
+void token_dump();
 
 #endif /* SYMBOLS_H */

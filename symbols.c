@@ -197,9 +197,15 @@ token_add(int flag)
 }
 
 void
-token_dump(const char *format)
+token_dump()
 {
+	printf("+-----+--------------------+--------------------+\n"
+	       "|%4s |%19s |%19s |\n"
+	       "+-----+--------------------+--------------------+\n",
+	       "No", "Symbol", "Symbol Type");
 	for (token_t *t = tokens; t != token_tail; t = t->next) {
-		printf(format, t->no, t->value, symtype[t->type]);
+		printf("|%4d |%19s |%19s |\n", t->no, t->value,
+		       symtype[t->type]);
 	}
+	printf("+-----+--------------------+--------------------+\n");
 }

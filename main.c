@@ -115,13 +115,8 @@ main(int argc, char *argv[])
 	finish = clock();
 
 	/* Print results of lex */
-	printf("+-----+--------------------+--------------------+\n"
-	       "|%4s |%19s |%19s |\n"
-	       "+-----+--------------------+--------------------+\n",
-	       "No", "Symbol", "Symbol Type");
 	/* Iterate all the tokens */
-	token_dump("|%4d |%19s |%19s |\n");
-	printf("+-----+--------------------+--------------------+\n");
+	token_dump();
 
 	/* Calculate time spent */
 	duration = (double)(finish - start) / CLOCKS_PER_SEC;
