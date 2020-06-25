@@ -32,7 +32,7 @@ print_help(char **argv)
 int
 main(int argc, char *argv[])
 {
-	char *infile, *outfile;
+	char *infile, *outfile = 0;
 	clock_t start, finish;
 	int len;
 
@@ -96,8 +96,11 @@ main(int argc, char *argv[])
 
 	/* "" or "-" for stdout */
 	if (!(outfile[0] == 0 || (outfile[0] == '-' && outfile[1] == 0))) {
-		if (freopen(outfile, "w+", stdout) != 0)
+		printf("Redirecting output to file: %s", outfile);
+		if (freopen(outfile, "w+", stdout) == 0){
 			perror(outfile);
+			return 1;
+		}
 	}
 
 	/* Record start time */
