@@ -74,7 +74,6 @@ SYMBOL
 getsym()
 {
 	int ch;
-	char invalid[2] = "\0";
 
 	while ((ch = get_char()) != EOF && ch <= ' ')
 		;
@@ -109,7 +108,7 @@ getsym()
 		if (ch == '=') {
 			SAVE_SYM(":=", becomes)
 		} else
-			return nul;
+			invalid();
 	case '=':
 		SAVE_SYM("=", eql)
 	case '#':
@@ -130,21 +129,20 @@ getsym()
 		SAVE_SYM(">", gtr)
 	default:
 		if (isdigit(ch)) {
-			int num = 0;
+			int num = 0, count = 0;
 			do {
 				num = 10 * num + ch - '0';
+				count++;
 				ch = get_char();
 			} while (ch != EOF && isdigit(ch));
 			sprintf(id, "%d", num);
+
 			if (isalpha(ch)) {
-				invalid[0] = (char)ch;
-				strcat(id, invalid);
-				ch = get_char();
-				while (isalnum(ch)) {
-					invalid[0] = (char)ch;
-					strcat(id, invalid);
-					ch = get_char();
-				}
+				id[count] = ch;
+				for (ch = get_char(); isalnum(ch);
+				     ch = get_char())
+					id[++count] = ch;
+
 				invalid();
 			}
 			unget_char(ch);
@@ -152,16 +150,18 @@ getsym()
 		} else if (isalpha(ch)) {
 			id_len = 0;
 			do {
-				if (id_len < MAX_IDENT) {
-					id[id_len] = (char)ch;
-					id_len++;
-				}
+				if (id_len < MAX_IDENT)
+					id[id_len++] = ch;
 				ch = get_char();
 			} while (ch != EOF && isalnum(ch));
-			id[id_len] = '\0';
+			id[id_len] = 0;
+
 			unget_char(ch);
-			int num = sym2key(id);
-			return (num == -1) ? ident : num2sym(num);
+
+			{
+				int num = sym2key(id);
+				return (num == -1) ? ident : num2sym(num);
+			}
 		}
 
 		invalid();
