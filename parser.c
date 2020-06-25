@@ -7,14 +7,14 @@ extern token_t *token_tail;
 extern pos_t err;
 extern const char *symtype[33];
 
-#define invalid_token(token, assumed)                                                    \
-	{                                                                                \
-		fprintf(stderr,                                                          \
-			"syntax:%d:%d: syntax error, expected \"%s\" but got \"%s\".\n", \
-			err.row, err.col, symtype[assumed],                              \
-			symtype[token->type]);                                           \
-		exit(1);                                                                 \
-	}
+static inline void
+invalid_token(const token_t *token, SYMBOL assumed)
+{
+	fprintf(stderr,
+		"syntax:%d:%d: syntax error, expected \"%s\" but got \"%s\".\n",
+		err.row, err.col, symtype[assumed], symtype[token->type]);
+	exit(1);
+}
 
 /* Get next token, abort on error */
 const token_t *
