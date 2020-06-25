@@ -37,11 +37,7 @@ main(int argc, char *argv[])
 	double duration;
 	int len;
 
-	for (;;) {
-		int option = getopt(argc, argv, "o:");
-		if (option == -1)
-			break;
-
+	for (int option; (option = getopt(argc, argv, "o:")) != -1;) {
 		switch (option) {
 		case 'o':
 			len = strlen(optarg);
