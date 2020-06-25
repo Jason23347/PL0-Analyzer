@@ -101,15 +101,18 @@ parse_statement(const token_t *token)
 		parse_expresion(next_token()); // a + 1
 	}
 
-	else if (token->type == callsym) // call
+	else if (token->type == callsym) {// call
 		assert(next_token(), ident); // id
+		next_token();
+	}
 
 	else if (token->type == beginsym) { // begin
 		next_token();
 		do {
 			parse_statement(token_tail); // a := 1
-			assert(next_token(), semicolon); // ;
+			assert(token_tail, semicolon); // ;
 		} while (next_token()->type != endsym); // end
+		next_token();
 	}
 
 	else if (token->type == ifsym) { // if
@@ -136,6 +139,7 @@ parse_statement(const token_t *token)
 		} while (next_token()->type == comma); // ,
 
 		assert(token_tail, rparen); // )
+		next_token();
 	}
 
 	else if (token->type == writesym) { // write
@@ -147,6 +151,7 @@ parse_statement(const token_t *token)
 		} while (token_tail->type == comma); // ,
 
 		assert(token_tail, rparen); // )
+		next_token();
 	}
 }
 
