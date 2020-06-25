@@ -184,6 +184,10 @@ token_add(int flag)
 		t = tokens + token_num - 1;
 	} else {
 		t = malloc(sizeof(token_t));
+		if (!t) {
+			fprintf(stderr, "Out of memory\n");
+			exit(1);
+		}
 	}
 
 	int len = strlen(id);
