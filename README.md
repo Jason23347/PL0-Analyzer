@@ -22,6 +22,28 @@ Read from stdin:
 
 ## Tests
 ```bash
+$ gcc -Wall -I. ./*.c -o analyzer && ./analyzer - <<<'a := 1'
+PL/0 Analizer Copyright 2020    ShuaiCheng Zhu
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+Lexical analysis result:
+
++-----+--------------------+--------------------+
+|  No |             Symbol |        Symbol Type |
++-----+--------------------+--------------------+
+|   1 |                  a |              ident |
+|   2 |                 := |            becomes |
+|   3 |                  1 |             number |
++-----+--------------------+--------------------+
+
+Lexical and syntax analysis completed (0.000 secs)
+```
+
+```bash
 $ ./analyzer - <<END
 if a > b then
 123begin
