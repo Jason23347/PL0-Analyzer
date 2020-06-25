@@ -17,7 +17,7 @@ sym2key(const char *id)
 }
 
 SYMBOL
-num2sym(int num)
+key2num(int num)
 {
 	switch (num) {
 	case 0:

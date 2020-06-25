@@ -63,7 +63,7 @@ unget_char(int ch)
 	}
 
 /* Print error info if symbol cannot be recongnized */
-#define invalid_symbol()                                                              \
+#define invalid_symbol()                                                       \
 	{                                                                      \
 		fprintf(stderr, "lex:%d:%d: invalid symbol: %s\n", err.row,    \
 			err.col, id);                                          \
@@ -160,7 +160,7 @@ getsym()
 
 			{
 				int num = sym2key(id);
-				return (num == -1) ? ident : num2sym(num);
+				return (num == -1) ? ident : key2num(num);
 			}
 		}
 
