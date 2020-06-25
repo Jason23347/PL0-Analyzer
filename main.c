@@ -34,7 +34,6 @@ main(int argc, char *argv[])
 {
 	char *infile, *outfile;
 	clock_t start, finish;
-	double duration;
 	int len;
 
 	for (int option; (option = getopt(argc, argv, "o:")) != -1;) {
@@ -93,7 +92,7 @@ main(int argc, char *argv[])
 	}
 
 	/* Almost ready for lexical analysis */
-	printf("Lexical Analysis\n\n");
+	printf("Lexical analysis result:\n\n");
 
 	/* "" or "-" for stdout */
 	if (!(outfile[0] == 0 || (outfile[0] == '-' && outfile[1] == 0))) {
@@ -115,12 +114,12 @@ main(int argc, char *argv[])
 	finish = clock();
 
 	/* Print results of lex */
-	/* Iterate all the tokens */
 	token_dump();
 
 	/* Calculate time spent */
-	duration = (double)(finish - start) / CLOCKS_PER_SEC;
-	printf("Lexical analysis completed (%2.3f secs)\n", duration);
+	printf("\n"
+	       "Lexical and syntax analysis completed (%2.3f secs)\n",
+	       (double)(finish - start) / CLOCKS_PER_SEC);
 
 	return 0;
 }
