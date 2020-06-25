@@ -1,5 +1,6 @@
 #include "parser.h"
 
+#include <stdarg.h>
 #include <stdlib.h>
 
 extern token_t *token_tail;
@@ -31,11 +32,24 @@ next_token()
 }
 
 static void
-assert(const token_t *token, SYMBOL sym)
+assert_multi(const token_t *token, int num, ...)
 {
-	if (token->type != sym)
-		invalid_token(token, sym)
+	SYMBOL sym;
+	va_list ap;
+
+	va_start(ap, num);
+
+	for (int i = 0; i < num; i++) {
+		sym = va_arg(ap, SYMBOL);
+		if (token->type == sym)
+			return;
+	}
+	invalid_token(token, sym);
+
+	va_end(ap);
 }
+
+#define assert(token, sym) assert_multi(token, 1, sym)
 
 void
 parse()
@@ -87,10 +101,10 @@ parse_statement(const token_t *token)
 		parse_expresion(next_token()); // a + 1
 	}
 
-	if (token->type == callsym) // call
+	else if (token->type == callsym) // call
 		assert(next_token(), ident); // id
 
-	if (token->type == beginsym) { // begin
+	else if (token->type == beginsym) { // begin
 		next_token();
 		do {
 			parse_statement(token_tail); // a := 1
@@ -98,7 +112,7 @@ parse_statement(const token_t *token)
 		} while (next_token()->type != endsym); // end
 	}
 
-	if (token->type == ifsym) { // if
+	else if (token->type == ifsym) { // if
 		parse_condition(next_token()); // a > 1
 
 		assert(token_tail, thensym); // then
@@ -106,7 +120,7 @@ parse_statement(const token_t *token)
 		parse_statement(next_token()); // a := 1
 	}
 
-	if (token->type == whilesym) { // while
+	else if (token->type == whilesym) { // while
 		parse_condition(next_token()); // a > 1
 
 		assert(token_tail, dosym); // do
@@ -114,7 +128,7 @@ parse_statement(const token_t *token)
 		parse_statement(next_token()); // a := 1
 	}
 
-	if (token->type == readsym) { // read
+	else if (token->type == readsym) { // read
 		assert(next_token(), lparen); // (
 
 		do {
@@ -124,7 +138,7 @@ parse_statement(const token_t *token)
 		assert(token_tail, rparen); // )
 	}
 
-	if (token->type == writesym) { // write
+	else if (token->type == writesym) { // write
 		assert(next_token(), lparen); // (
 
 		next_token();
@@ -179,25 +193,6 @@ parse_expresion(const token_t *token)
 		parse_item(token); // a + 1
 }
 
-#define skip(token, sym)                                                       \
-	{                                                                      \
-		if (token->type == sym)                                        \
-			return;                                                \
-	}
-
-static inline void
-check_compare(const token_t *token)
-{
-	skip(token, eql); // =
-	skip(token, neq); // #
-	skip(token, lss); // <
-	skip(token, leq); // <=
-	skip(token, gtr); // >
-	skip(token, geq); // >=
-
-	invalid_token(token, eql);
-}
-
 void
 parse_condition(const token_t *token)
 {
@@ -205,7 +200,10 @@ parse_condition(const token_t *token)
 		parse_expresion(next_token()); // a + 1
 	else {
 		parse_expresion(token); // a + 1
-		check_compare(token_tail); // >=
+
+		// = # < <= > >=
+		assert_multi(token_tail, 6, eql, neq, lss, leq, gtr, geq);
+
 		parse_expresion(next_token()); // b * 2
 	}
 }
