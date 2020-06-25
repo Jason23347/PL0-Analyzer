@@ -63,7 +63,7 @@ unget_char(int ch)
 	}
 
 /* Print error info if symbol cannot be recongnized */
-#define invalid()                                                              \
+#define invalid_symbol()                                                              \
 	{                                                                      \
 		fprintf(stderr, "lex:%d:%d: invalid symbol: %s\n", err.row,    \
 			err.col, id);                                          \
@@ -108,7 +108,7 @@ getsym()
 		if (ch == '=') {
 			SAVE_SYM(":=", becomes)
 		} else
-			invalid();
+			invalid_symbol();
 	case '=':
 		SAVE_SYM("=", eql)
 	case '#':
@@ -143,7 +143,7 @@ getsym()
 				     ch = get_char())
 					id[++count] = ch;
 
-				invalid();
+				invalid_symbol();
 			}
 			unget_char(ch);
 			return number;
@@ -164,7 +164,7 @@ getsym()
 			}
 		}
 
-		invalid();
+		invalid_symbol();
 	}
 }
 
