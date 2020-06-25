@@ -35,8 +35,6 @@ main(int argc, char *argv[])
 	char *infile, *outfile;
 	clock_t start, finish;
 	double duration;
-	SYMBOL flag;
-	FILE *stream;
 	int len;
 
 	for (;;) {
@@ -101,8 +99,8 @@ main(int argc, char *argv[])
 	/* Almost ready for lexical analysis */
 	printf("Lexical Analysis\n\n");
 
-	/* "-" for stdout */
-	if (!(outfile[0] == 0 || outfile[0] == '-' && outfile[1] == 0)) {
+	/* "" or "-" for stdout */
+	if (!(outfile[0] == 0 || (outfile[0] == '-' && outfile[1] == 0))) {
 		if (freopen(outfile, "w+", stdout) != 0)
 			perror(outfile);
 	}
