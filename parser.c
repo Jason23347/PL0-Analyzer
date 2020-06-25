@@ -130,7 +130,7 @@ parse_statement(const token_t *token)
 		next_token();
 		do {
 			parse_expresion(token_tail); // a + 1
-		} while (next_token()->type == comma); // ,
+		} while (token_tail->type == comma); // ,
 
 		assert(token_tail, rparen); // )
 	}
@@ -139,13 +139,11 @@ parse_statement(const token_t *token)
 static void
 parse_factor(const token_t *token)
 {
-	if (token->type == lparen) // (
+	if (token->type == lparen) { // (
 		parse_expresion(next_token());
-
-	if (token->type == ident || token->type == number) // a or 1
-		return;
-
-	invalid_token(token, ident);
+		assert(token_tail, rparen); // )
+	} else
+		assert_multi(token, 2, ident, number); // a 1
 }
 
 static inline void
