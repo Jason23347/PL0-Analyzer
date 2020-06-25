@@ -54,7 +54,7 @@ typedef struct {
 	void *next;
 } token_t;
 
-#define PREALLOC_SYM_NUM 0x010
+#define PREALLOC_SYM_NUM 0x040
 
 /* Wrapper for fgetc/ungetc */
 int get_char();
