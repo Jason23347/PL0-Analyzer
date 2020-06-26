@@ -2,11 +2,73 @@
 
 一个简单的 PL/0 词法/语法分析器
 
-## build
+## Grammar
+```
+program = block "." .
 
-### gcc
+block = [ "const" ident "=" number {"," ident "=" number} ";"]
+        [ "var" ident {"," ident} ";"]
+        { "procedure" ident ";" block ";" } statement .
+
+statement = [ ident ":=" expression | "call" ident
+              | "?" ident | "!" expression
+              | "begin" statement {";" statement } "end"
+              | "if" condition "then" statement
+              | "while" condition "do" statement ].
+
+condition = "odd" expression |
+            expression ("="|"#"|"<"|"<="|">"|">=") expression .
+
+expression = [ "+"|"-"] term { ("+"|"-") term}.
+
+term = factor {("*"|"/") factor}.
+
+factor = ident | number | "(" expression ")".
+```
+
+## Example
+```
+const max = 100;
+var arg, ret;
+
+procedure isprime;
+var i;
+begin
+	ret := 1;
+	i := 2;
+	while i < arg do
+	begin
+		if arg / i * i = arg then
+		begin
+			ret := 0;
+			i := arg
+		end;
+		i := i + 1
+	end
+end;
+
+procedure primes;
+begin
+	arg := 2;
+	while arg < max do
+	begin
+		call isprime;
+		if ret = 1 then write arg;
+		arg := arg + 1
+	end
+end;
+
+call primes
+.
+```
+
+## Build
+
+### building with gcc/mingw
 ```bash
 gcc -I. ./*.c -o analyzer
+# or
+x86_64-w64-mingw32-gcc -I. ./*.c -o analyzer
 ```
 
 ## Usage
@@ -57,8 +119,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-Lexical Analysis
-
 lex:2:1: invalid symbol: 123begin
 ```
 
@@ -75,8 +135,6 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-
-Lexical Analysis
 
 syntax:3:7: syntax error, expected becomes but got eql.
 ```
