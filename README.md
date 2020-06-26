@@ -27,7 +27,7 @@ factor = ident | number | "(" expression ")".
 ```
 
 ## Example
-```
+```pascal
 const max = 100;
 var arg, ret;
 
