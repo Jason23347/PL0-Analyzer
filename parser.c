@@ -82,7 +82,7 @@ parse()
 
 		parse(); // block
 
-		assert(next_token(), semicolon); // ;
+		assert(token_tail, semicolon); // ;
 		next_token();
 	}
 
@@ -91,7 +91,6 @@ parse()
 	/* End of program */
 	if (token_tail->type == period)
 		return;
-
 }
 
 void
@@ -109,9 +108,19 @@ parse_statement(const token_t *token)
 
 	else if (token->type == beginsym) { // begin
 		parse_statement(next_token()); // a := 1
+		/* Return when got an 'end' symbol,
+			or assumed to be a semicolon with afterward other statements */
+		if (token_tail->type == endsym) { // end
+			next_token();
+			return;
+		}
+
 		do {
 			if (token_tail->type == semicolon) // ;
 				parse_statement(next_token()); // a := 1
+			else
+				invalid_token(token_tail, semicolon);
+
 		} while (next_token()->type != endsym); // end
 	}
 
