@@ -23,39 +23,39 @@
 
 /* Enumulate of all the symbols */
 typedef enum SYMBOL {
-	nul,
-	eof,
-	plus,
-	minus,
-	times,
-	slash,
-	lparen,
-	rparen,
-	comma,
-	semicolon,
-	period,
-	becomes,
-	eql,
-	neq,
-	lss,
-	gtr,
-	leq,
-	geq,
-	number,
-	ident,
-	beginsym,
-	callsym,
-	constsym,
-	dosym,
-	endsym,
-	ifsym,
-	oddsym,
-	proceduresym,
-	readsym,
-	thensym,
-	varsym,
-	whilesym,
-	writesym
+	nul, // null
+	eof, // EOF
+	plus, // +
+	minus, // -
+	times, // *
+	slash, // /
+	lparen, // (
+	rparen, // )
+	comma, // ,
+	semicolon, // ;
+	period, // .
+	becomes, // :=
+	eql, // =
+	neq, // #
+	lss, // <
+	gtr, // >
+	leq, // <=
+	geq, // >=
+	number, // 123
+	ident, // abc
+	beginsym, // begin
+	callsym, // end
+	constsym, // const
+	dosym, // do
+	endsym, // end
+	ifsym, // if
+	oddsym, // odd
+	proceduresym, // proc
+	readsym, // read
+	thensym, // then
+	varsym, // var
+	whilesym, // while
+	writesym // write
 } SYMBOL;
 
 /* Record position of the file */
