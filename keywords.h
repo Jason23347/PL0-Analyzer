@@ -21,9 +21,12 @@
 
 #include "symbols.h"
 
-/* Check if is keyword */
-int sym2key(const char *id);
-/* Transform from number to SYMBOL */
-SYMBOL key2num(int num);
+typedef struct {
+	const char *value;
+	SYMBOL symbol;
+} keyword_t;
+
+/* Convert keyword to SYMBOL */
+SYMBOL key2sym(const char *id);
 
 #endif /* KEYWORDS_H */

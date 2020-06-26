@@ -175,11 +175,7 @@ getsym()
 			id[id_len] = 0;
 
 			unget_char(ch);
-
-			{
-				int num = sym2key(id);
-				return (num == -1) ? ident : key2num(num);
-			}
+			return key2sym(id);
 		}
 
 		invalid_symbol();

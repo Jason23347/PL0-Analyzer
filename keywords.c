@@ -20,51 +20,30 @@
 
 #include "keywords.h"
 
-const char *keywords[13] = { "begin", "call",  "const",	    "do",   "end",
-			     "if",    "odd",   "procedure", "read", "then",
-			     "var",   "while", "write" };
-
-int
-sym2key(const char *id)
-{
-	for (const char **ptr = keywords; ptr - keywords < 13; ptr++) {
-		if (!strcmp(*ptr, id))
-			return (ptr - keywords);
-	}
-	return -1;
-}
+const keyword_t keywords[14] = {
+	{ .value = "begin", .symbol = beginsym },
+	{ .value = "call", .symbol = callsym },
+	{ .value = "const", .symbol = constsym },
+	{ .value = "do", .symbol = dosym },
+	{ .value = "end", .symbol = endsym },
+	{ .value = "if", .symbol = ifsym },
+	{ .value = "odd", .symbol = oddsym },
+	{ .value = "procedure", .symbol = proceduresym },
+	{ .value = "read", .symbol = readsym },
+	{ .value = "then", .symbol = thensym },
+	{ .value = "var", .symbol = varsym },
+	{ .value = "while", .symbol = whilesym },
+	{ .value = "write", .symbol = writesym },
+	{ .value = "", .symbol = ident } // fallback to ident
+};
 
 SYMBOL
-key2num(int num)
+key2sym(const char *id)
 {
-	switch (num) {
-	case 0:
-		return beginsym;
-	case 1:
-		return callsym;
-	case 2:
-		return constsym;
-	case 3:
-		return dosym;
-	case 4:
-		return endsym;
-	case 5:
-		return ifsym;
-	case 6:
-		return oddsym;
-	case 7:
-		return proceduresym;
-	case 8:
-		return readsym;
-	case 9:
-		return thensym;
-	case 10:
-		return varsym;
-	case 11:
-		return whilesym;
-	case 12:
-		return writesym;
-	default:
-		return nul;
+	const keyword_t *ptr;
+	for (ptr = keywords; ptr - keywords < 13; ptr++) {
+		if (!strcmp(ptr->value, id))
+			break;
 	}
+	return ptr->symbol;
 }
