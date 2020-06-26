@@ -109,22 +109,17 @@ parse_statement(const token_t *token)
 			if (token_tail->type == semicolon) // ;
 				parse_statement(token_tail); // a := 1
 		} while (next_token()->type != endsym); // end
-		next_token();
 	}
 
 	else if (token->type == ifsym) { // if
 		parse_condition(next_token()); // a > 1
-
 		assert(token_tail, thensym); // then
-
 		parse_statement(next_token()); // a := 1
 	}
 
 	else if (token->type == whilesym) { // while
 		parse_condition(next_token()); // a > 1
-
 		assert(token_tail, dosym); // do
-
 		parse_statement(next_token()); // a := 1
 	}
 
