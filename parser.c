@@ -1,3 +1,4 @@
+
 #include "parser.h"
 
 #include <stdarg.h>
@@ -89,7 +90,7 @@ parse()
 	parse_statement(token_tail); // a := 1
 
 	/* End of program */
-	if (token_tail->type == period)
+	if (token_tail->type == period) // .
 		return;
 }
 
