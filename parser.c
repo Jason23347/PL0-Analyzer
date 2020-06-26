@@ -6,14 +6,13 @@
 
 extern token_t *token_tail;
 extern pos_t err;
-extern const char *symtype[33];
 
 static inline void
 invalid_token(const token_t *token, SYMBOL assumed)
 {
 	fprintf(stderr,
 		"syntax:%d:%d: syntax error, expected \"%s\" but got \"%s\".\n",
-		err.row, err.col, symtype[assumed], symtype[token->type]);
+		err.row, err.col, sym2human(assumed), sym2human(token->type));
 	exit(1);
 }
 
@@ -32,7 +31,7 @@ next_token()
 	return token_tail;
 }
 
-static void
+void
 assert_multi(const token_t *token, int num, ...)
 {
 	SYMBOL sym;
@@ -49,8 +48,6 @@ assert_multi(const token_t *token, int num, ...)
 
 	va_end(ap);
 }
-
-#define assert(token, sym) assert_multi(token, 1, sym)
 
 void
 parse()
@@ -99,7 +96,7 @@ parse_statement(const token_t *token)
 {
 	if (token->type == ident) { // id
 		assert(next_token(), becomes); // :=
-		parse_expresion(next_token()); // a + 1
+		parse_expression(next_token()); // a + 1
 	}
 
 	else if (token->type == callsym) { // call
@@ -153,7 +150,7 @@ parse_statement(const token_t *token)
 
 		next_token();
 		do {
-			parse_expresion(token_tail); // a + 1
+			parse_expression(token_tail); // a + 1
 		} while (token_tail->type == comma); // ,
 
 		assert(token_tail, rparen); // )
@@ -161,18 +158,18 @@ parse_statement(const token_t *token)
 	}
 }
 
-static void
+void
 parse_factor(const token_t *token)
 {
 	if (token->type == lparen) { // (
-		parse_expresion(next_token());
+		parse_expression(next_token());
 		assert(token_tail, rparen); // )
 	} else
 		assert_multi(token, 2, ident, number); // a 1
 }
 
-static inline void
-parse_item(const token_t *token)
+void
+parse_term(const token_t *token)
 {
 	parse_factor(token);
 	for (;;) {
@@ -188,33 +185,33 @@ parse_item(const token_t *token)
 	for (;;) {
 		if (token_tail->type == plus ||
 		    token_tail->type == minus) { // + and -
-			parse_item(next_token());
+			parse_term(next_token());
 			continue;
 		}
 		break;
 	}
 }
 
-inline void
-parse_expresion(const token_t *token)
+void
+parse_expression(const token_t *token)
 {
 	if (token->type == plus || token->type == minus) // + and -
-		parse_item(next_token()); // a + 1
+		parse_term(next_token()); // a + 1
 	else
-		parse_item(token); // a + 1
+		parse_term(token); // a + 1
 }
 
 void
 parse_condition(const token_t *token)
 {
 	if (token->type == oddsym) // odd
-		parse_expresion(next_token()); // a + 1
+		parse_expression(next_token()); // a + 1
 	else {
-		parse_expresion(token); // a + 1
+		parse_expression(token); // a + 1
 
 		// = # < <= > >=
 		assert_multi(token_tail, 6, eql, neq, lss, leq, gtr, geq);
 
-		parse_expresion(next_token()); // b * 2
+		parse_expression(next_token()); // b * 2
 	}
 }
