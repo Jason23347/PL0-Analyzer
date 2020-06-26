@@ -91,9 +91,6 @@ main(int argc, char *argv[])
 			memcpy(p, ".out", 5);
 	}
 
-	/* Almost ready for lexical analysis */
-	printf("Lexical analysis result:\n\n");
-
 	/* "-" for stdout */
 	if (outfile[0] == '-' && outfile[1] == 0) {
 		printf("Redirecting output to file: %s", outfile);
@@ -117,6 +114,7 @@ main(int argc, char *argv[])
 	finish = clock();
 
 	/* Print results of lex */
+	printf("Lexical analysis result:\n\n");
 	token_dump();
 
 	/* Calculate time spent */
