@@ -225,7 +225,7 @@ token_dump()
 	       "|%4s |%19s |%19s |\n"
 	       "+-----+--------------------+--------------------+\n",
 	       "No", "Symbol", "Symbol Type");
-	for (token_t *t = tokens; t != token_tail; t = t->next) {
+	for (token_t *t = tokens; t != NULL; t = t->next) {
 		printf("|%4d |%19s |%19s |\n", t->no, t->value,
 		       symtype[t->type]);
 	}
