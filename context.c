@@ -20,6 +20,21 @@
 
 #include <stdlib.h>
 
+/* Get next token, abort on error */
+context_t *
+next(context_t *context)
+{
+	/* Get a symbol from input */
+	int flag = getsym();
+	/* Abort if get an invalid symbol */
+	if (!flag)
+		exit(1);
+	/* Or add it into chain */
+	token_add(context, flag);
+
+	return context;
+}
+
 context_t *
 context_init()
 {
