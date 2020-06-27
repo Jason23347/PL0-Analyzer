@@ -269,7 +269,6 @@ token_add(int flag)
 	}
 
 	int len = strlen(id);
-	t->no = token_num;
 	t->value = malloc(len);
 	t->type = flag;
 	memcpy(t->value, id, len);
@@ -281,12 +280,14 @@ token_add(int flag)
 void
 token_dump()
 {
+	int i = 1;
+
 	printf("+-----+--------------------+--------------------+\n"
 	       "|%4s |%19s |%19s |\n"
 	       "+-----+--------------------+--------------------+\n",
 	       "No", "Symbol", "Symbol Type");
-	for (token_t *t = tokens; t != NULL; t = t->next) {
-		printf("|%4d |%19s |%19s |\n", t->no, t->value,
+	for (token_t *t = tokens; t != NULL; t = t->next, i++) {
+		printf("|%4d |%19s |%19s |\n", i, t->value,
 		       sym2human(t->type));
 	}
 	printf("+-----+--------------------+--------------------+\n");

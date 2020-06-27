@@ -66,7 +66,6 @@ typedef struct {
 
 /* Chain node of symbols */
 typedef struct {
-	unsigned no;
 	char *value;
 	SYMBOL type;
 	void *next;
