@@ -40,8 +40,10 @@ typedef struct {
 	ident_t *id_tail;
 	int id_num;
 
-	/* For if conditions */
+	/* For conditions */
 	bool excute;
+	/* Specify if scan next token from input */
+	bool scan;
 
 	/* Tow-way linked list */
 	void *prev;
@@ -76,7 +78,7 @@ void token_dump(context_t *context);
 */
 
 /* Scan in next token */
-context_t *next();
+context_t *context_next(context_t *context);
 
 /**
  * Check if token->type matches the given SYMBOLs,
@@ -130,6 +132,7 @@ int ident_assign(const context_t *context, ident_t *id, int value);
 ident_t *ident_find(context_t *context, const char *name);
 int ident_value(const context_t *context, ident_t *id);
 
+void ident_prompt(const ident_t *id);
 void ident_dump(context_t *context);
 
 #endif /* CONTEXT_H */

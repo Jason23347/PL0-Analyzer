@@ -22,8 +22,13 @@
 
 /* Get next token, abort on error */
 context_t *
-next(context_t *context)
+context_next(context_t *context)
 {
+	if (!context->scan) {
+		context->token_tail = context->token_tail->next;
+		return context;
+	}
+
 	/* Get a symbol from input */
 	int flag = getsym();
 	/* Abort if get an invalid symbol */
@@ -48,6 +53,7 @@ context_init()
 	context->id_tail = context->idents;
 
 	context->excute = true;
+	context->scan = true;
 
 	return context;
 }

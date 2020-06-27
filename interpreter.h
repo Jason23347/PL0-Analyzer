@@ -24,8 +24,8 @@
 #include "symbols.h"
 
 typedef enum {
-	varable, // value changeable
 	constvar, // value unchangeable
+	variable, // value changeable
 	procedure // function
 } IDENT;
 

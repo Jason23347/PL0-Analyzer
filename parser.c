@@ -56,45 +56,46 @@ parse(context_t *context)
 {
 	ident_t *id;
 
-	next(context);
+	context_next(context);
 
 	if (context->token_tail->type == constsym) { // const
 		do {
-			assert(next(context), ident); // id
+			assert(context_next(context), ident); // id
 			id = ident_add(context, context->token_tail, constvar);
 
-			assert(next(context), eql); // =
+			assert(context_next(context), eql); // =
 
-			assert(next(context), number); // 123
+			assert(context_next(context), number); // 123
 			ident_assign(context, id,
 				     atoi(context->token_tail->value));
-		} while (next(context)->token_tail->type == comma); // ,
+		} while (context_next(context)->token_tail->type == comma); // ,
 
 		assert(context, semicolon); // ;
-		next(context);
+		context_next(context);
 	}
 
 	if (context->token_tail->type == varsym) { // var
 		do {
-			assert(next(context), ident); // id
-			id = ident_add(context, context->token_tail, constvar);
-		} while (next(context)->token_tail->type == comma); // ,
+			assert(context_next(context), ident); // id
+			id = ident_add(context, context->token_tail, variable);
+		} while (context_next(context)->token_tail->type == comma); // ,
 
 		assert(context, semicolon); // ;
-		next(context);
+		context_next(context);
 	}
 
 	for (; context->token_tail->type == proceduresym;) { // procedure
-		assert(next(context), ident); // id
-		assert(next(context), semicolon); // ;
+		assert(context_next(context), ident); // id
+		assert(context_next(context), semicolon); // ;
 
 		context_t *new_context = context_init(1, sizeof(context_t));
+		/* FIXME multi procedures */
 		new_context->prev = context;
 		context->next = new_context;
 		parse(new_context); // block
 
 		assert(context, semicolon); // ;
-		next(context);
+		context_next(context);
 	}
 
 	parse_statement(context); // a := 1
@@ -113,70 +114,80 @@ parse_statement(context_t *context)
 			ident_error("variable \"%s\" used but undefined\n");
 			exit(1);
 		}
-		assert(next(context), becomes); // :=
+		assert(context_next(context), becomes); // :=
 		// a + 1
-		int ret = parse_expression(next(context));
+		int ret = parse_expression(context_next(context));
 		ident_assign(context, id, ret);
 	}
 
 	else if (context->token_tail->type == callsym) { // call
-		assert(next(context), ident); // id
-		next(context);
+		assert(context_next(context), ident); // id
+		context_next(context);
 	}
 
 	else if (context->token_tail->type == beginsym) { // begin
-		parse_statement(next(context)); // a := 1
+		parse_statement(context_next(context)); // a := 1
 		/* Return when got an 'end' symbol,
 			or assumed to be a semicolon with afterward other statements */
 		if (context->token_tail->type == endsym) { // end
-			next(context);
+			context_next(context);
 			return;
 		}
 
 		do {
 			if (context->token_tail->type == semicolon) // ;
-				parse_statement(next(context)); // a := 1
+				parse_statement(
+					context_next(context)); // a := 1
 			else
 				invalid_token(context->token_tail, endsym);
 
 		} while (context->token_tail->type != endsym); // end
 	}
 
-	else if (context->token_tail ->type== ifsym) { // if
-		/* condition */
-		context->excute = parse_condition(next(context));
+	else if (context->token_tail->type == ifsym) { // if
+		bool tmp = context->excute;
+		context->excute &= parse_condition(context_next(context));
 		assert(context, thensym); // then
-		parse_statement(next(context)); // a := 1
-		context->excute = true;
+		parse_statement(context_next(context)); // a := 1
+		context->excute = tmp;
 	}
 
 	else if (context->token_tail->type == whilesym) { // while
-		parse_condition(next(context)); // a > 1
-		assert(context, dosym); // do
-		parse_statement(next(context)); // a := 1
+		token_t *hook = context->token_tail;
+		while (context->excute &&
+		       parse_condition(context_next(context))) {
+			assert(context, dosym); // do
+			parse_statement(context_next(context)); // a := 1
+			context->scan = false;
+			context->token_tail = hook;
+		}
+		context->scan = true;
+		for (; context->token_tail->next;
+		     context->token_tail = context->token_tail->next)
+			;
 	}
 
 	else if (context->token_tail->type == readsym) { // read
-		assert(next(context), lparen); // (
+		assert(context_next(context), lparen); // (
 
 		do {
-			assert(next(context), ident); // id
-		} while (next(context)->token_tail->type == comma); // ,
+			assert(context_next(context), ident); // id
+		} while (context_next(context)->token_tail->type == comma); // ,
 
 		assert(context, rparen); // )
-		next(context);
+		context_next(context);
 	}
 
 	else if (context->token_tail->type == writesym) { // write
-		assert(next(context), lparen); // (
+		assert(context_next(context), lparen); // (
 
-		next(context);
+		context_next(context);
 		do {
 			parse_expression(context); // a + 1
 		} while (context->token_tail->type == comma); // ,
 
 		assert(context, rparen); // )
-		next(context);
+		context_next(context);
 	}
 }
 
@@ -186,7 +197,7 @@ parse_factor(context_t *context)
 	int ret;
 
 	if (context->token_tail->type == lparen) { // (
-		ret = parse_expression(next(context));
+		ret = parse_expression(context_next(context));
 		assert(context, rparen); // )
 	}
 
@@ -219,12 +230,12 @@ parse_term(context_t *context)
 	int ret = parse_factor(context);
 
 	for (;;) {
-		next(context);
+		context_next(context);
 		if (context->token_tail->type == times ||
 		    context->token_tail->type == slash) { // * or /
 			SYMBOL opt = context->token_tail->type;
 			ret = operation(ret, opt,
-				      parse_factor(next(context)));
+					parse_factor(context_next(context)));
 			continue;
 		}
 		break;
@@ -235,7 +246,7 @@ parse_term(context_t *context)
 		    context->token_tail->type == minus) { // + and -
 			SYMBOL opt = context->token_tail->type;
 			ret = operation(ret, opt,
-				      parse_term(next(context)));
+					parse_term(context_next(context)));
 			continue;
 		}
 		break;
@@ -249,7 +260,7 @@ parse_expression(context_t *context)
 {
 	if (context->token_tail->type == plus ||
 	    context->token_tail->type == minus) // + and -
-		return parse_term(next(context)); // a + 1
+		return parse_term(context_next(context)); // a + 1
 	else
 		return parse_term(context); // a + 1
 }
@@ -259,7 +270,7 @@ parse_condition(context_t *context)
 {
 	int ret;
 	if (context->token_tail->type == oddsym) // odd
-		return 0 == parse_expression(next(context)); // a + 1
+		return 0 == parse_expression(context_next(context)); // a + 1
 
 	ret = parse_expression(context); // a + 1
 
@@ -267,5 +278,5 @@ parse_condition(context_t *context)
 	assert_multi(context, 6, eql, neq, lss, leq, gtr, geq);
 
 	SYMBOL opt = context->token_tail->type;
-	return condition(ret, opt, parse_expression(next(context)));
+	return condition(ret, opt, parse_expression(context_next(context)));
 }
