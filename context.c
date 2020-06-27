@@ -81,6 +81,7 @@ context_free(context_t *context)
 		}
 	}
 
+	/* FIXME free(): invalid next size (fast) */
 	for (i = 0; i < context->token_num - 1; i++) {
 		free(token->value);
 		token = token->next;

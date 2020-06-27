@@ -127,7 +127,6 @@ main(int argc, char *argv[])
 	}
 
 	ident_dump(context);
-	context_free(context);
 
 	return 0;
 }

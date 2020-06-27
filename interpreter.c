@@ -29,7 +29,7 @@ ident_error(const char *fmt, ...)
 {
 	extern pos_t err;
 	va_list ap;
-	
+
 	va_start(ap, fmt);
 
 	fprintf(stderr, "interpreter:%d:%d: ", err.row, err.col);
@@ -93,10 +93,10 @@ ident_find(context_t *context, const char *name)
 }
 
 int
-ident_assign(const context_t *context, ident_t *id, int value)
+ident_assign(const context_t *context, ident_t *id, void *value)
 {
 	/* Skip if condition not match */
-	if (!context->excute)
+	if (!context->excute && id->type != procvar)
 		return 0;
 
 	if (id->value) {
@@ -105,24 +105,22 @@ ident_assign(const context_t *context, ident_t *id, int value)
 				    id->name);
 			return -1;
 		}
-	} else
-		id->value = malloc(sizeof(int));
+	}
 
-	*id->value = value;
+	if (id->type == procvar)
+		id->value = value;
+	else {
+		id->value = malloc(sizeof(int));
+		memcpy(id->value, value, sizeof(int));
+	}
 
 	return 0;
 }
 
-int
+void *
 ident_value(const context_t *context, ident_t *id)
 {
-	if (!id->value) {
-		ident_error("variable %s not initialed, default to 0\n",
-			    id->name);
-		return 0;
-	}
-
-	return *id->value;
+	return id->value;
 }
 
 void
@@ -135,7 +133,13 @@ ident_dump(context_t *context)
 	       "+---------------+----------+\n");
 	for (int i = 0; i < context->id_num; i++) {
 		if (ptr->value)
-			printf("|%14s |%9d |\n", ptr->name, *ptr->value);
+			if (ptr->type == procvar) {
+				printf("|%14s |%9s |\n", ptr->name, "(addr)");
+			} else {
+				printf("|%14s |%9d |\n", ptr->name,
+				       *(int *)ptr->value);
+			}
+
 		else
 			printf("|%14s |%9s |\n", ptr->name, "(null)");
 		ptr = ptr->next;

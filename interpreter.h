@@ -31,7 +31,7 @@ typedef enum {
 
 typedef struct {
 	const char *name;
-	int *value;
+	void *value;
 	IDENT type;
 
 	void *next;
@@ -40,6 +40,8 @@ typedef struct {
 void ident_error(const char *fmt, ...);
 #define ident_undefined(name)                                                    \
 	ident_error("variable \"%s\" used but undefined\n", name)
+#define ident_uninitialized(name)                                                    \
+	ident_error("variable \"%s\" used but not initialized\n", name)
 
 int operation(int m, SYMBOL opt, int n);
 bool condition(int m, SYMBOL opt, int n);

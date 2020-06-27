@@ -250,7 +250,7 @@ token_add(context_t *context, int flag)
 {
 	token_t *t;
 	if (context->token_num < PREALLOC_SYM_NUM) {
-		t = context->tokens + context->token_num - 1;
+		t = context->tokens + context->token_num;
 	} else {
 		t = malloc(sizeof(token_t));
 		if (!t) {

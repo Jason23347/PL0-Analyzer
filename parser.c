@@ -67,8 +67,8 @@ parse(context_t *context)
 			assert(context_next(context), eql); // =
 
 			assert(context_next(context), number); // 123
-			ident_assign(context, id,
-				     atoi(context->token_tail->value));
+			int tmp = atoi(context->token_tail->value);
+			ident_assign(context, id, &tmp);
 		} while (context_next(context)->token_tail->type == comma); // ,
 
 		assert(context, semicolon); // ;
@@ -87,19 +87,25 @@ parse(context_t *context)
 
 	for (; context->token_tail->type == proceduresym;) { // procedure
 		assert(context_next(context), ident); // id
+		ident_t *id = ident_add(context, context->token_tail, procvar);
+
 		assert(context_next(context), semicolon); // ;
 
-		ident_add(context, context->token_tail, procvar);
-
 		context_t *new_context = context_init();
+		ident_assign(context, id, new_context);
+		new_context->excute = false;
+
 		/* prev fot ident table, next for free */
 		new_context->prev = context;
 		context_tail->next = new_context;
 		context_tail = new_context;
+
 		parse(new_context); // block
 
 		assert(context, semicolon); // ;
 		context_next(context);
+		new_context->excute = true;
+		new_context->scan = false;
 	}
 
 	parse_statement(context); // a := 1
@@ -122,11 +128,19 @@ parse_statement(context_t *context)
 		int ret = parse_expression(context_next(context));
 
 		if (id)
-			ident_assign(context, id, ret);
+			ident_assign(context, id, &ret);
 	}
 
 	else if (context->token_tail->type == callsym) { // call
 		assert(context_next(context), ident); // id
+		ident_t *id = ident_find(context, context->token_tail->value);
+		if (id) {
+			context_t *tmp = id->value;
+			/* TODO not so elegant */
+			token_t t = { .next = tmp->tokens };
+			tmp->token_tail = &t;
+			parse(tmp);
+		}
 		context_next(context);
 	}
 
@@ -184,7 +198,7 @@ parse_statement(context_t *context)
 				ident_undefined(context->token_tail->value);
 			} else {
 				if (scanf("%d", &tmp))
-					ident_assign(context, id, tmp);
+					ident_assign(context, id, &tmp);
 			}
 		} while (context_next(context)->token_tail->type == comma); // ,
 
@@ -221,7 +235,12 @@ parse_factor(context_t *context)
 			ident_undefined(context->token_tail->value);
 			return 0;
 		}
-		ret = ident_value(context, id);
+		if (!id->value) {
+			if (context->excute)
+				ident_uninitialized(id->name);
+			return 0;
+		}
+		ret = *(int *)ident_value(context, id);
 	}
 
 	else if (context->token_tail->type == number) // 1

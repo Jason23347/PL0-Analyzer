@@ -127,10 +127,10 @@ int parse_factor(context_t *context);
  * Functions of interpreters
 */
 ident_t *ident_add(context_t *context, const token_t *token, IDENT type);
-int ident_assign(const context_t *context, ident_t *id, int value);
+int ident_assign(const context_t *context, ident_t *id, void *value);
 
 ident_t *ident_find(context_t *context, const char *name);
-int ident_value(const context_t *context, ident_t *id);
+void *ident_value(const context_t *context, ident_t *id);
 
 void ident_prompt(const ident_t *id);
 void ident_dump(context_t *context);
