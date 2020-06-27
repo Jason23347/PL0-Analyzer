@@ -27,10 +27,12 @@
 void
 ident_error(const char *fmt, ...)
 {
+	extern pos_t err;
 	va_list ap;
+	
 	va_start(ap, fmt);
 
-	fprintf(stderr, "interpreter: ");
+	fprintf(stderr, "interpreter:%d:%d: ", err.row, err.col);
 	vfprintf(stderr, fmt, ap);
 
 	va_end(ap);
