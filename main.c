@@ -51,6 +51,7 @@ main(int argc, char *argv[])
 	char *infile, *outfile = "";
 	int len;
 	context_t *context;
+	extern context_t *context_tail;
 
 	for (int option; (option = getopt(argc, argv, "o:")) != -1;) {
 		switch (option) {
@@ -119,6 +120,7 @@ main(int argc, char *argv[])
 	/* Initialize variables */
 	token_init();
 	context = context_init();
+	context_tail = context;
 	while (!feof(stdin)) {
 		/* FIXME: hanle returing code instead of exit on errors */
 		parse(context);

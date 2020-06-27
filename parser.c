@@ -55,6 +55,7 @@ void
 parse(context_t *context)
 {
 	ident_t *id;
+	extern context_t *context_tail;
 
 	context_next(context);
 
@@ -88,10 +89,13 @@ parse(context_t *context)
 		assert(context_next(context), ident); // id
 		assert(context_next(context), semicolon); // ;
 
-		context_t *new_context = context_init(1, sizeof(context_t));
-		/* FIXME multi procedures */
+		ident_add(context, context->token_tail, procvar);
+
+		context_t *new_context = context_init();
+		/* prev fot ident table, next for free */
 		new_context->prev = context;
-		context->next = new_context;
+		context_tail->next = new_context;
+		context_tail = new_context;
 		parse(new_context); // block
 
 		assert(context, semicolon); // ;

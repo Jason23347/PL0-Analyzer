@@ -20,6 +20,8 @@
 
 #include <stdlib.h>
 
+context_t *context_tail;
+
 /* Get next token, abort on error */
 context_t *
 context_next(context_t *context)
