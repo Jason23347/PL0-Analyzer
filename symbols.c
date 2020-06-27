@@ -23,16 +23,6 @@
 #include "symbols.h"
 #include "keywords.h"
 
-/* human readable */
-const char *symtype[33] = {
-	"nul",	  "eof",      "plus",	  "minus",	  "times",    "slash",
-	"lparen", "rparen",   "comma",	  "seicolon",	  "period",   "becomes",
-	"eql",	  "neq",      "lss",	  "gtr",	  "leq",      "geq",
-	"number", "ident",    "beginsym", "callsym",	  "consysym", "dosym",
-	"endsym", "ifsym",    "oddsym",	  "proceduresym", "readsym",  "thensym",
-	"varsym", "whilesym", "writesym"
-};
-
 /* Current position and error position */
 pos_t cur, err;
 /* Preallocated symbol chain */
@@ -182,6 +172,80 @@ getsym()
 	}
 }
 
+const char *
+sym2human(SYMBOL sym)
+{
+	switch (sym) {
+	case eof:
+		return "EOF";
+	case plus:
+		return "+";
+	case minus:
+		return "-";
+	case times:
+		return "*";
+	case slash:
+		return "/";
+	case lparen:
+		return "(";
+	case rparen:
+		return ")";
+	case comma:
+		return ",";
+	case semicolon:
+		return ";";
+	case period:
+		return ".";
+	case becomes:
+		return ":=";
+	case eql:
+		return "=";
+	case neq:
+		return "#";
+	case lss:
+		return "<";
+	case gtr:
+		return ">";
+	case leq:
+		return "<=";
+	case geq:
+		return ">=";
+	case number:
+		return "number";
+	case ident:
+		return "ident";
+	case beginsym:
+		return "begin";
+	case callsym:
+		return "end";
+	case constsym:
+		return "const";
+	case dosym:
+		return "do";
+	case endsym:
+		return "end";
+	case ifsym:
+		return "if";
+	case oddsym:
+		return "odd";
+	case proceduresym:
+		return "proc";
+	case readsym:
+		return "read";
+	case thensym:
+		return "then";
+	case varsym:
+		return "var";
+	case whilesym:
+		return "while";
+	case writesym:
+		return "write";
+	case nul:
+	default:
+		return "(null)";
+	}
+}
+
 void
 token_init()
 {
@@ -223,7 +287,7 @@ token_dump()
 	       "No", "Symbol", "Symbol Type");
 	for (token_t *t = tokens; t != NULL; t = t->next) {
 		printf("|%4d |%19s |%19s |\n", t->no, t->value,
-		       symtype[t->type]);
+		       sym2human(t->type));
 	}
 	printf("+-----+--------------------+--------------------+\n");
 }

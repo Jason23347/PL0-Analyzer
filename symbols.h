@@ -80,6 +80,8 @@ int unget_char(int ch);
 
 /* Get symbol from input file */
 SYMBOL getsym();
+/* Convert SYMBOL to human readable string */
+const char *sym2human(SYMBOL sym);
 
 /* Initialize variables */
 void token_init();
