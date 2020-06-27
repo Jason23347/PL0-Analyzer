@@ -159,7 +159,6 @@ parse_statement(context_t *context)
 					context_next(context)); // a := 1
 			else
 				invalid_token(context->token_tail, endsym);
-
 		} while (context->token_tail->type != endsym); // end
 	}
 
