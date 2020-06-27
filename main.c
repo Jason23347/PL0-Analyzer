@@ -22,9 +22,7 @@
 #include <string.h>
 #include <getopt.h>
 
-#include "symbols.h"
-#include "keywords.h"
-#include "parser.h"
+#include "context.h"
 
 /* Print version and copyright */
 static inline void
@@ -51,8 +49,8 @@ int
 main(int argc, char *argv[])
 {
 	char *infile, *outfile = "";
-	clock_t start, finish;
 	int len;
+	context_t *context;
 
 	for (int option; (option = getopt(argc, argv, "o:")) != -1;) {
 		switch (option) {
@@ -118,27 +116,16 @@ main(int argc, char *argv[])
 		}
 	}
 
-	/* Record start time */
-	start = clock();
-
 	/* Initialize variables */
 	token_init();
+	context = context_init();
 	while (!feof(stdin)) {
-		/* Break on yass errors but print results of lex */
-		parse();
+		/* FIXME: hanle returing code instead of exit on errors */
+		parse(context);
 	}
 
-	/* Record end time */
-	finish = clock();
-
-	/* Print results of lex */
-	printf("Lexical analysis result:\n\n");
-	token_dump();
-
-	/* Calculate time spent */
-	printf("\n"
-	       "Lexical and syntax analysis completed (%2.3f secs)\n",
-	       (double)(finish - start) / CLOCKS_PER_SEC);
+	ident_dump(context);
+	context_free(context);
 
 	return 0;
 }

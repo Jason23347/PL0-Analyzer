@@ -16,59 +16,30 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SYMBOLS_H
-#define SYMBOLS_H
+#ifndef INTERPRETER_H
+#define INTERPRETER_H
 
-#include <stdio.h>
+#include <stdbool.h>
 
-/* Enumulate of all the symbols */
+#include "symbols.h"
+
 typedef enum {
-	nul, // null
-	eof, // EOF
-	plus, // +
-	minus, // -
-	times, // *
-	slash, // /
-	lparen, // (
-	rparen, // )
-	comma, // ,
-	semicolon, // ;
-	period, // .
-	becomes, // :=
-	eql, // =
-	neq, // #
-	lss, // <
-	gtr, // >
-	leq, // <=
-	geq, // >=
-	number, // 123
-	ident, // abc
-	beginsym, // begin
-	callsym, // end
-	constsym, // const
-	dosym, // do
-	endsym, // end
-	ifsym, // if
-	oddsym, // odd
-	proceduresym, // proc
-	readsym, // read
-	thensym, // then
-	varsym, // var
-	whilesym, // while
-	writesym // write
-} SYMBOL;
+	varable, // value changeable
+	constvar, // value unchangeable
+	procedure // function
+} IDENT;
 
-/* Record position of the file */
 typedef struct {
-	int row;
-	int col;
-} pos_t;
+	const char *name;
+	int *value;
+	IDENT type;
 
-/* Chain node of symbols */
-typedef struct {
-	char *value;
-	SYMBOL type;
 	void *next;
-} token_t;
+} ident_t;
 
-#endif /* SYMBOLS_H */
+void ident_error(const char *fmt, ...);
+
+int operate(int m, SYMBOL opt, int n);
+bool condition(int m, SYMBOL opt, int n);
+
+#endif /* INTERPRETER_H */

@@ -20,15 +20,11 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#include "symbols.h"
 #include "keywords.h"
+#include "context.h"
 
 /* Current position and error position */
 pos_t cur, err;
-/* Preallocated symbol chain */
-token_t tokens[PREALLOC_SYM_NUM];
-/* Head and tail of the chain, the chain itself is hidden to others */
-token_t *token_tail = tokens;
 
 /* Max length of an ident */
 #define MAX_IDENT 20
@@ -37,9 +33,6 @@ token_t *token_tail = tokens;
 char id[MAX_IDENT] = "";
 /* Ident length */
 int id_len;
-
-/* Count for symbols */
-int token_num;
 
 int
 get_char()
@@ -88,7 +81,6 @@ getsym()
 
 	err.row = cur.row;
 	err.col = cur.col;
-	token_num++;
 
 	switch (ch) {
 	case EOF:
@@ -251,15 +243,14 @@ token_init()
 {
 	cur.row = 1;
 	cur.col = 0;
-	token_num = 0;
 }
 
 void
-token_add(int flag)
+token_add(context_t *context, int flag)
 {
 	token_t *t;
-	if (token_num < PREALLOC_SYM_NUM) {
-		t = tokens + token_num - 1;
+	if (context->token_num < PREALLOC_SYM_NUM) {
+		t = context->tokens + context->token_num - 1;
 	} else {
 		t = malloc(sizeof(token_t));
 		if (!t) {
@@ -270,25 +261,31 @@ token_add(int flag)
 
 	int len = strlen(id);
 	t->value = malloc(len);
+	if (!t->value) {
+		fprintf(stderr, "Out of mempry\n");
+		exit(1);
+	}
 	t->type = flag;
 	memcpy(t->value, id, len);
 
-	token_tail->next = t;
-	token_tail = t;
+	context->token_tail->next = t;
+	context->token_tail = t;
+
+	context->token_num++;
 }
 
 void
-token_dump()
+token_dump(context_t *context)
 {
-	int i = 1;
+	const token_t *t = context->tokens;
 
 	printf("+-----+--------------------+--------------------+\n"
 	       "|%4s |%19s |%19s |\n"
 	       "+-----+--------------------+--------------------+\n",
 	       "No", "Symbol", "Symbol Type");
-	for (token_t *t = tokens; t != NULL; t = t->next, i++) {
-		printf("|%4d |%19s |%19s |\n", i, t->value,
-		       sym2human(t->type));
+	for (int i = 1; i < context->token_num; i++) {
+		printf("|%4d |%19s |%19s |\n", i, t->value, sym2human(t->type));
+		t = t->next;
 	}
 	printf("+-----+--------------------+--------------------+\n");
 }
