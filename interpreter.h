@@ -26,7 +26,7 @@
 typedef enum {
 	constvar, // value unchangeable
 	variable, // value changeable
-	procedure // function
+	procvar // function
 } IDENT;
 
 typedef struct {
