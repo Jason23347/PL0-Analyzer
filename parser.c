@@ -119,7 +119,7 @@ parse_statement(const token_t *token)
 			else
 				invalid_token(token_tail, semicolon);
 
-		} while (next_token()->type != endsym); // end
+		} while (token_tail->type != endsym); // end
 	}
 
 	else if (token->type == ifsym) { // if
