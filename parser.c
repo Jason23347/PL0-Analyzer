@@ -223,7 +223,7 @@ parse_term(context_t *context)
 		if (context->token_tail->type == times ||
 		    context->token_tail->type == slash) { // * or /
 			SYMBOL opt = context->token_tail->type;
-			ret = operate(ret, opt,
+			ret = operation(ret, opt,
 				      parse_factor(next(context)));
 			continue;
 		}
@@ -234,7 +234,7 @@ parse_term(context_t *context)
 		if (context->token_tail->type == plus ||
 		    context->token_tail->type == minus) { // + and -
 			SYMBOL opt = context->token_tail->type;
-			ret = operate(ret, opt,
+			ret = operation(ret, opt,
 				      parse_term(next(context)));
 			continue;
 		}

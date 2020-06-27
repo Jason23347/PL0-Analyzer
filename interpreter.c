@@ -142,7 +142,7 @@ ident_dump(context_t *context)
 }
 
 int
-operate(int m, SYMBOL opt, int n)
+operation(int m, SYMBOL opt, int n)
 {
 	switch (opt) {
 	case plus:

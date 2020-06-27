@@ -39,7 +39,7 @@ typedef struct {
 
 void ident_error(const char *fmt, ...);
 
-int operate(int m, SYMBOL opt, int n);
+int operation(int m, SYMBOL opt, int n);
 bool condition(int m, SYMBOL opt, int n);
 
 #endif /* INTERPRETER_H */
