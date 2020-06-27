@@ -38,6 +38,8 @@ typedef struct {
 } ident_t;
 
 void ident_error(const char *fmt, ...);
+#define ident_undefined(name)                                                    \
+	ident_error("variable \"%s\" used but undefined\n", name)
 
 int operation(int m, SYMBOL opt, int n);
 bool condition(int m, SYMBOL opt, int n);

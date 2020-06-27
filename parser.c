@@ -110,14 +110,15 @@ parse_statement(context_t *context)
 {
 	if (context->token_tail->type == ident) { // id
 		ident_t *id = ident_find(context, context->token_tail->value);
-		if (!id) {
-			ident_error("variable \"%s\" used but undefined\n");
-			exit(1);
-		}
+		if (!id)
+			ident_undefined(context->token_tail->value);
+
 		assert(context_next(context), becomes); // :=
 		// a + 1
 		int ret = parse_expression(context_next(context));
-		ident_assign(context, id, ret);
+
+		if (id)
+			ident_assign(context, id, ret);
 	}
 
 	else if (context->token_tail->type == callsym) { // call
@@ -172,6 +173,15 @@ parse_statement(context_t *context)
 
 		do {
 			assert(context_next(context), ident); // id
+			int tmp;
+			ident_t *id =
+				ident_find(context, context->token_tail->value);
+			if (!id) {
+				ident_undefined(context->token_tail->value);
+			} else {
+				if (scanf("%d", &tmp))
+					ident_assign(context, id, tmp);
+			}
 		} while (context_next(context)->token_tail->type == comma); // ,
 
 		assert(context, rparen); // )
@@ -204,9 +214,7 @@ parse_factor(context_t *context)
 	else if (context->token_tail->type == ident) { // a
 		ident_t *id = ident_find(context, context->token_tail->value);
 		if (!id) {
-			ident_error(
-				"use undefined variable \"%s\", default to 0\n",
-				context->token_tail->value);
+			ident_undefined(context->token_tail->value);
 			return 0;
 		}
 		ret = ident_value(context, id);
