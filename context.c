@@ -42,35 +42,31 @@ context_next(context_t *context)
 	return context;
 }
 
-context_t *
-context_init(FILE *instream, FILE *outstream)
+void
+context_init(context_t *context, FILE *instream, FILE *outstream)
 {
-	context_t *context = calloc(1, sizeof(context_t));
-	if (!context) {
-		fprintf(stderr, "Out of memory\n");
-		return NULL;
-	}
-
 	context->instream = instream;
 	context->outstream = outstream;
 
 	context->token_tail = context->tokens;
+	context->token_num = 0;
 	context->id_tail = context->idents;
+	context->id_num = 0;
+
+	context->prev = 0;
 
 	context->excute = true;
 	context->scan = true;
-
-	context->message[0] = 0;
-
-	return context;
 }
 
 context_t *
 context_fork(context_t *parent)
 {
-	context_t *context = NULL;
-	if (!(context = context_init(context->instream, context->outstream)))
+	context_t *context = calloc(1, sizeof(context_t));
+	if (!context) {
+		sprintf(context_top(context)->message, "Out of memory\n");
 		return NULL;
+	}
 
 	/* prev fot ident table, next for free */
 	context->prev = parent;
@@ -80,10 +76,13 @@ context_fork(context_t *parent)
 	return context;
 }
 
-void
-context_error(context_t *context)
+const context_t *
+context_top(const context_t *context)
 {
-	fprintf(stderr, "%s\n", context->message);
+	const context_t *tmp;
+	for (tmp = context; tmp->prev; tmp = context->prev)
+		;
+	return tmp;
 }
 
 void

@@ -20,12 +20,13 @@
 #define CONTEXT_H
 
 #include "symbols.h"
+#include "prompt.h"
 #include "interpreter.h"
 
 #define PREALLOC_SYM_NUM 0x040
 #define PREALLOC_ID_NUM 0x10
 
-#define MAX_CONTEXT_MSG_LEN 64
+#define MAX_CONTEXT_MSG_LEN 128
 
 /* Context tree node of each block */
 typedef struct {
@@ -52,17 +53,19 @@ typedef struct {
 	bool scan;
 
 	/* Error message */
-	char message[MAX_CONTEXT_MSG_LEN];
+	char *message;
 
 	/* Tow-way linked list */
 	void *prev;
 	void *next;
 } context_t;
 
-context_t *context_init(FILE *instream, FILE *outstream);
+void context_init(context_t *context, FILE *instream, FILE *outstream);
 void context_free(context_t *context);
 context_t *context_fork(context_t *parent);
-void context_error(context_t *context);
+
+const context_t *
+context_top(const context_t *context);
 
 /**
  * Functions of tokens
@@ -144,5 +147,14 @@ ident_t *ident_find(context_t *context, const char *name);
 
 void ident_prompt(const ident_t *id);
 void ident_dump(context_t *context);
+
+void ident_error(const context_t *context, const char *fmt, ...);
+#define ident_undefined(name)                                                  \
+	ident_error(context, "variable \"%s\" used but undefined\n", name)
+#define ident_uninitialized(name)                                              \
+	ident_error(context, "variable \"%s\" used but not initialized\n", name)
+
+int operation(const context_t *context, int m, SYMBOL opt, int n);
+bool condition(const context_t *context, int m, SYMBOL opt, int n);
 
 #endif /* CONTEXT_H */
