@@ -18,11 +18,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <string.h>
 #include <getopt.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <readline/readline.h>
+#include <readline/history.h>
+#include <sys/wait.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/sem.h>
 
 #include "context.h"
+
+// #define NDEBUG
 
 /* Print version and copyright */
 static inline void
@@ -39,94 +47,153 @@ print_version()
 static inline void
 print_help(char **argv)
 {
-	printf("Usage: %s [options] infile\n"
-	       "Options:\n"
-	       "  -o\tSpecify output file",
-	       argv[0]);
+	printf("Usage: %s [options] [infile]\n", argv[0]);
+}
+
+void
+cli_run(char *filename)
+{
+	char *line = 0;
+	int fd[2];
+	int status, process_count = 0;
+	FILE *instream;
+	pid_t pid;
+	struct timeval start, end;
+	key_t key;
+	int sem;
+	context_t *context;
+	extern context_t *context_tail;
+
+	if (!(key = ftok(filename, 0))) {
+		perror("generate key");
+		exit(1);
+	}
+
+	/* CLI mode readline */
+	while ((line = readline("PL0> ")) != NULL) {
+		/* Chile thread not setup */
+		if (!process_count) {
+			/* Setup pipe */
+			if (pipe(fd) == -1) {
+				perror("pipe creatation");
+				continue;
+			}
+			if (!(instream = fdopen(fd[0], "r"))) {
+				perror("pipe input");
+				continue;
+			}
+
+			/* Setup semaphore */
+			if (!(sem = semget(key, 1, IPC_EXCL))) {
+				perror("semaphore");
+				continue;
+			}
+
+			/* Initialize semaphore */
+			semctl(sem, 1, SETVAL);
+
+			/* Initialize interpreter */
+			token_init();
+			context = context_init(instream, stdout);
+			prompt_setup(context->prompt, "PL0> ");
+			context_tail = context;
+
+			/* Create a child thread */
+			pid = fork();
+			if (pid == 0) { /* Child thread */
+				/* Close output pipe */
+				close(fd[1]);
+				/* Run interpreter */
+				parse(context);
+				/* Exit with 0 if no error,
+					or 1 handled by interpreter */
+				exit(0);
+			}
+
+			/* thread creatation failed */
+			if (pid < 0) {
+				perror("thread create");
+				exit(1);
+			}
+
+			/* Close input pipe for father thread */
+			close(fd[0]);
+		}
+
+		/* Deal with input string */
+		if (strcmp(line, "")) {
+			/* Write line to pipe */
+			if (!write(fd[1], line, strlen(line)) ||
+			    !write(fd[1], "\n", 1)) {
+				perror("pipe write error");
+				exit(1);
+			}
+		}
+
+		/* Father thread */
+		process_count++;
+		/* Set start time for timeout */
+		gettimeofday(&start, 0);
+		/* initialize status for waitpid */
+		status = -1;
+		/* non-blocking hanlding with timeout */
+		while (waitpid(pid, &status, WNOHANG)) {
+			gettimeofday(&end, 0);
+			/* Set timeout for 1 sec */
+			if ((end.tv_sec - start.tv_sec) * 1000000 +
+				    (end.tv_usec - start.tv_usec) >
+			    100000) {
+				fprintf(stderr, "interpreter timeout\n");
+				break;
+			}
+			/* Child thread exited */
+			if (WIFEXITED(status)) {
+				/* Child thread exited with non-zero value */
+				if (WEXITSTATUS(status))
+					/* Print error message */
+					context_error(context);
+				break;
+			}
+		}
+		process_count = 0;
+
+#if !defined(NDEBUG)
+		/* Debug info */
+		printf("\nIdent table:\n");
+		ident_dump(context);
+#endif
+	}
 }
 
 int
 main(int argc, char *argv[])
 {
-	char *infile, *outfile = "";
-	int len;
-	context_t *context;
-	extern context_t *context_tail;
+	const char *infile = 0;
+	int is_cli_mode = 1;
+	FILE *instream;
 
-	for (int option; (option = getopt(argc, argv, "o:")) != -1;) {
+	for (int option; (option = getopt(argc, argv, "hv")) != -1;) {
 		switch (option) {
-		case 'o':
-			len = strlen(optarg);
-			outfile = malloc(len);
-			if (!outfile) {
-				fprintf(stderr, "Out of memory\n");
-				return 1;
-			}
-			memcpy(outfile, optarg, len);
+		case 'v':
+			print_version();
 			break;
+		case 'h':
 		default:
 			print_help(argv);
 			return 1;
 		}
 	}
 
-	if (argc - optind < 1) {
-		print_help(argv);
-		return 1;
-	}
-	print_version();
-
 	/* Open input file */
 	infile = argv[optind];
-	if (!(infile[0] == '-' && infile[1] == 0))
-		if ((freopen(infile, "r", stdin)) == 0) {
+	if (infile) {
+		is_cli_mode = 0;
+		if (!(instream = fopen(infile, "r")))
 			perror(infile);
-			return 1;
-		}
-
-	/**
-	 * Generate a default filename
-	 * file		-> file.out
-	 * file.pl0	-> file.out
-	 */
-	if (strcmp(infile, "-") && !outfile) {
-		len = strlen(infile);
-		outfile = malloc(len + 4);
-		memcpy(outfile, infile, len);
-
-		char *t = 0;
-		char *p = 0, *q = 0;
-
-		for (t = outfile; (t = strpbrk(t + 1, ".")) != 0; p = t)
-			;
-		for (t = outfile; (t = strpbrk(t + 1, "/")) != 0; q = t)
-			;
-
-		if (p < q) /* Input file has no extension */
-			strcat(outfile, ".out");
-		else
-			memcpy(p, ".out", 5);
 	}
 
-	/* "-" for stdout */
-	if (outfile[0] == '-' && outfile[1] == 0) {
-		printf("Redirecting output to file: %s", outfile);
-		if (freopen(outfile, "w+", stdout) == 0) {
-			perror(outfile);
-			return 1;
-		}
-	}
-
-	/* Initialize variables */
-	token_init();
-	context = context_init();
-	context_tail = context;
-	while (!feof(stdin)) {
-		/* FIXME: hanle returing code instead of exit on errors */
-		parse(context);
-	}
-
-	ident_dump(context);
+	if (is_cli_mode)
+		cli_run(argv[0]);
 
 	return 0;
 }
