@@ -23,13 +23,16 @@
 #include "interpreter.h"
 
 #define PREALLOC_SYM_NUM 0x040
-
 #define PREALLOC_ID_NUM 0x10
+
+#define MAX_CONTEXT_MSG_LEN 64
 
 /* Context tree node of each block */
 typedef struct {
 	FILE *instream;
 	FILE *outstream;
+
+	prompt_t prompt[1];
 
 	/* Preallocated token chain, used by lex and syntax */
 	token_t tokens[PREALLOC_SYM_NUM];
@@ -48,6 +51,9 @@ typedef struct {
 	/* Specify if scan next token from input */
 	bool scan;
 
+	/* Error message */
+	char message[MAX_CONTEXT_MSG_LEN];
+
 	/* Tow-way linked list */
 	void *prev;
 	void *next;
@@ -56,6 +62,7 @@ typedef struct {
 context_t *context_init(FILE *instream, FILE *outstream);
 void context_free(context_t *context);
 context_t *context_fork(context_t *parent);
+void context_error(context_t *context);
 
 /**
  * Functions of tokens

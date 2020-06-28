@@ -60,6 +60,8 @@ context_init(FILE *instream, FILE *outstream)
 	context->excute = true;
 	context->scan = true;
 
+	context->message[0] = 0;
+
 	return context;
 }
 
@@ -76,6 +78,12 @@ context_fork(context_t *parent)
 	context_tail = context;
 
 	return context;
+}
+
+void
+context_error(context_t *context)
+{
+	fprintf(stderr, "%s\n", context->message);
 }
 
 void
