@@ -20,17 +20,15 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <sys/wait.h>
 #include <sys/time.h>
-#include <sys/types.h>
-#include <sys/sem.h>
+#include <sys/shm.h>
 
 #include "context.h"
 
-// #define NDEBUG
+#define NDEBUG
 
 /* Print version and copyright */
 static inline void
@@ -59,13 +57,14 @@ cli_run(char *filename)
 	FILE *instream;
 	pid_t pid;
 	struct timeval start, end;
-	key_t key;
-	int sem;
-	context_t *context;
+	context_t context[1];
+	int shmid;
+	int timed_out;
 	extern context_t *context_tail;
 
-	if (!(key = ftok(filename, 0))) {
-		perror("generate key");
+	shmid = shmget(0, MAX_CONTEXT_MSG_LEN, IPC_CREAT | 0600);
+	if (shmid == -1) {
+		perror("shmget");
 		exit(1);
 	}
 
@@ -75,26 +74,17 @@ cli_run(char *filename)
 		if (!process_count) {
 			/* Setup pipe */
 			if (pipe(fd) == -1) {
-				perror("pipe creatation");
+				perror("pipe");
 				continue;
 			}
 			if (!(instream = fdopen(fd[0], "r"))) {
-				perror("pipe input");
+				perror("fdopen");
 				continue;
 			}
-
-			/* Setup semaphore */
-			if (!(sem = semget(key, 1, IPC_EXCL))) {
-				perror("semaphore");
-				continue;
-			}
-
-			/* Initialize semaphore */
-			semctl(sem, 1, SETVAL);
 
 			/* Initialize interpreter */
 			token_init();
-			context = context_init(instream, stdout);
+			context_init(context, instream, stdout);
 			prompt_setup(context->prompt, "PL0> ");
 			context_tail = context;
 
@@ -103,8 +93,17 @@ cli_run(char *filename)
 			if (pid == 0) { /* Child thread */
 				/* Close output pipe */
 				close(fd[1]);
+				/* Attach shared memory */
+				context->message = shmat(shmid, NULL, 0);
+				context->message[0] = 0;
 				/* Run interpreter */
 				parse(context);
+				shmdt(context->message);
+
+				/* Debug info */
+				printf("\nIdent table:\n");
+				ident_dump(context);
+				fflush(stdout);
 				/* Exit with 0 if no error,
 					or 1 handled by interpreter */
 				exit(0);
@@ -124,7 +123,7 @@ cli_run(char *filename)
 		if (strcmp(line, "")) {
 			/* Write line to pipe */
 			if (!write(fd[1], line, strlen(line)) ||
-			    !write(fd[1], "\n", 1)) {
+			    !write(fd[1], ".\n", 2)) {
 				perror("pipe write error");
 				exit(1);
 			}
@@ -136,32 +135,34 @@ cli_run(char *filename)
 		gettimeofday(&start, 0);
 		/* initialize status for waitpid */
 		status = -1;
+		timed_out = 0;
 		/* non-blocking hanlding with timeout */
-		while (waitpid(pid, &status, WNOHANG)) {
+		while (waitpid(-1, &status, WNOHANG) == 0) {
+			// TODO break on block
 			gettimeofday(&end, 0);
-			/* Set timeout for 1 sec */
-			if ((end.tv_sec - start.tv_sec) * 1000000 +
-				    (end.tv_usec - start.tv_usec) >
-			    100000) {
+#if defined(NDEBUG)
+			/* Set timeout for 0.1 sec */
+			if ((end.tv_sec - start.tv_sec) * 1000000 > 10000) {
 				fprintf(stderr, "interpreter timeout\n");
+				kill(pid, SIGABRT);
+				timed_out = 1;
 				break;
 			}
-			/* Child thread exited */
-			if (WIFEXITED(status)) {
-				/* Child thread exited with non-zero value */
-				if (WEXITSTATUS(status))
-					/* Print error message */
-					context_error(context);
-				break;
+#endif
+		}
+
+		/* Child thread exited */
+		if (!timed_out && WIFEXITED(status)) {
+			/* Child thread exited with non-zero value */
+			if (WEXITSTATUS(status)) {
+				/* Attach shared memory */
+				char *message = shmat(shmid, NULL, 0);
+				/* Print error message */
+				fprintf(stderr, "%s\n", message);
+				shmdt(message);
 			}
 		}
 		process_count = 0;
-
-#if !defined(NDEBUG)
-		/* Debug info */
-		printf("\nIdent table:\n");
-		ident_dump(context);
-#endif
 	}
 }
 
