@@ -239,7 +239,7 @@ parse_factor(context_t *context)
 				ident_uninitialized(id->name);
 			return 0;
 		}
-		ret = *(int *)ident_value(context, id);
+		ret = *(int *)id->value;
 	}
 
 	else if (context->token_tail->type == number) // 1

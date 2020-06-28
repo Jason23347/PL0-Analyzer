@@ -117,12 +117,6 @@ ident_assign(const context_t *context, ident_t *id, void *value)
 	return 0;
 }
 
-void *
-ident_value(const context_t *context, ident_t *id)
-{
-	return id->value;
-}
-
 void
 ident_dump(context_t *context)
 {
