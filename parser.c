@@ -27,9 +27,10 @@ invalid_token(const token_t *token, SYMBOL assumed)
 {
 	extern pos_t err;
 
-	fprintf(stderr,
+	sprintf(context_top(context)->message,
 		"syntax:%d:%d: syntax error, expected \"%s\" but got \"%s\".\n",
-		err.row, err.col, sym2human(assumed), sym2human(token->type));
+		err.row, err.col, sym2human(assumed),
+		sym2human(context->token_tail->type));
 	exit(1);
 }
 

@@ -25,15 +25,16 @@
 #include "context.h"
 
 void
-ident_error(const char *fmt, ...)
+ident_error(const context_t *context, const char *fmt, ...)
 {
 	extern pos_t err;
 	va_list ap;
 
 	va_start(ap, fmt);
 
-	fprintf(stderr, "interpreter:%d:%d: ", err.row, err.col);
-	vfprintf(stderr, fmt, ap);
+	sprintf(context_top(context)->message, "interpreter:%d:%d: ", err.row,
+		err.col);
+	vsprintf(context_top(context)->message, fmt, ap);
 
 	va_end(ap);
 }
@@ -44,26 +45,23 @@ ident_add(context_t *context, const token_t *token, IDENT type)
 	ident_t *id;
 
 	if (token->type != ident) {
-		ident_error("cannot add ident of \"%s\" type\n",
+		ident_error(context, "cannot add ident of \"%s\" type\n",
 			    sym2human(token->type));
 		return NULL;
 	}
 
 	if (ident_find(context, token->value)) {
-		ident_error("cannot add ident \"%s\" duplicately\n",
+		ident_error(context, "cannot add ident \"%s\" duplicately\n",
 			    token->value);
 		return NULL;
 	}
 
-	if (context->id_num < PREALLOC_ID_NUM)
-		id = context->idents + context->id_num;
-	else {
-		id = malloc(sizeof(ident_t));
-		if (!id) {
-			fprintf(stderr, "Out of memory\n");
-			exit(1);
-		}
+	if (context->id_num > PREALLOC_ID_NUM) {
+		sprintf(context_top(context)->message, "Out of memory\n");
+		exit(1);
 	}
+
+	id = context->idents + context->id_num;
 
 	id->name = token->value;
 	id->type = type;
@@ -101,7 +99,8 @@ ident_assign(const context_t *context, ident_t *id, void *value)
 
 	if (id->value) {
 		if (id->type == constvar) {
-			ident_error("cannot assign value to const %s\n",
+			ident_error(context,
+				    "cannot assign value to const %s\n",
 				    id->name);
 			return -1;
 		}
@@ -110,8 +109,8 @@ ident_assign(const context_t *context, ident_t *id, void *value)
 	if (id->type == procvar)
 		id->value = value;
 	else {
-		id->value = malloc(sizeof(int));
-		memcpy(id->value, value, sizeof(int));
+		id->value = malloc(sizeof(size_t));
+		memcpy(id->value, value, sizeof(size_t));
 	}
 
 	return 0;
@@ -130,8 +129,8 @@ ident_dump(context_t *context)
 			if (ptr->type == procvar) {
 				printf("|%14s |%9s |\n", ptr->name, "(addr)");
 			} else {
-				printf("|%14s |%9d |\n", ptr->name,
-				       *(int *)ptr->value);
+				printf("|%14s |%9ld |\n", ptr->name,
+				       *(size_t *)ptr->value);
 			}
 
 		else
@@ -142,7 +141,7 @@ ident_dump(context_t *context)
 }
 
 int
-operation(int m, SYMBOL opt, int n)
+operation(const context_t *context, int m, SYMBOL opt, int n)
 {
 	switch (opt) {
 	case plus:
@@ -154,13 +153,14 @@ operation(int m, SYMBOL opt, int n)
 	case slash:
 		return m / n;
 	default:
-		ident_error("invalid operation: \"%s\"\n", sym2human(opt));
+		ident_error(context, "invalid operation: \"%s\"\n",
+			    sym2human(opt));
 		return 0;
 	}
 }
 
 bool
-condition(int m, SYMBOL opt, int n)
+condition(const context_t *context, int m, SYMBOL opt, int n)
 {
 	switch (opt) {
 	case eql:
@@ -176,7 +176,7 @@ condition(int m, SYMBOL opt, int n)
 	case geq:
 		return m >= n;
 	default:
-		ident_error("invalid operation token: \"%s\"\n",
+		ident_error(context, "invalid operation token: \"%s\"\n",
 			    sym2human(opt));
 		return false;
 	}
