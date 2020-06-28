@@ -32,7 +32,7 @@ context_next(context_t *context)
 	}
 
 	/* Get a symbol from input */
-	int flag = getsym();
+	int flag = getsym(context);
 	/* Abort if get an invalid symbol */
 	if (!flag)
 		exit(1);
@@ -43,13 +43,16 @@ context_next(context_t *context)
 }
 
 context_t *
-context_init()
+context_init(FILE *instream, FILE *outstream)
 {
 	context_t *context = calloc(1, sizeof(context_t));
 	if (!context) {
 		fprintf(stderr, "Out of memory\n");
 		return NULL;
 	}
+
+	context->instream = instream;
+	context->outstream = outstream;
 
 	context->token_tail = context->tokens;
 	context->id_tail = context->idents;
@@ -63,8 +66,8 @@ context_init()
 context_t *
 context_fork(context_t *parent)
 {
-	context_t *context;
-	if (!(context = context_init()))
+	context_t *context = NULL;
+	if (!(context = context_init(context->instream, context->outstream)))
 		return NULL;
 
 	/* prev fot ident table, next for free */

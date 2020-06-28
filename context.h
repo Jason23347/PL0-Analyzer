@@ -28,6 +28,9 @@
 
 /* Context tree node of each block */
 typedef struct {
+	FILE *instream;
+	FILE *outstream;
+
 	/* Preallocated token chain, used by lex and syntax */
 	token_t tokens[PREALLOC_SYM_NUM];
 	/* Tail of token chain*/
@@ -50,7 +53,7 @@ typedef struct {
 	void *next;
 } context_t;
 
-context_t *context_init();
+context_t *context_init(FILE *instream, FILE *outstream);
 void context_free(context_t *context);
 context_t *context_fork(context_t *parent);
 
@@ -59,11 +62,11 @@ context_t *context_fork(context_t *parent);
 */
 
 /* Wrapper for fgetc/ungetc */
-int get_char();
-int unget_char(int ch);
+int get_char(context_t *context);
+int unget_char(context_t *context, int ch);
 
 /* Get symbol from input file */
-SYMBOL getsym();
+SYMBOL getsym(context_t *context);
 /* Convert SYMBOL to human readable string */
 const char *sym2human(SYMBOL sym);
 

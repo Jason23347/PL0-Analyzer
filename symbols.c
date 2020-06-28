@@ -35,9 +35,9 @@ char id[MAX_IDENT] = "";
 int id_len;
 
 int
-get_char()
+get_char(context_t *context)
 {
-	int ch = fgetc(stdin);
+	int ch = fgetc(context->instream);
 	cur.col++;
 	if (ch == '\n') {
 		cur.row++;
@@ -47,9 +47,9 @@ get_char()
 }
 
 int
-unget_char(int ch)
+unget_char(context_t *context, int ch)
 {
-	ungetc(ch, stdin);
+	ungetc(ch, context->instream);
 	cur.col--;
 	if (ch == '\n')
 		cur.row--;
@@ -72,11 +72,11 @@ unget_char(int ch)
 	}
 
 SYMBOL
-getsym()
+getsym(context_t *context)
 {
 	int ch;
 
-	while ((ch = get_char()) != EOF && ch <= ' ')
+	while ((ch = get_char(context)) != EOF && ch <= ' ')
 		;
 
 	err.row = cur.row;
@@ -104,7 +104,7 @@ getsym()
 	case '.':
 		SAVE_SYM(".", period)
 	case ':':
-		ch = get_char();
+		ch = get_char(context);
 		if (ch == '=') {
 			SAVE_SYM(":=", becomes)
 		} else
@@ -114,18 +114,18 @@ getsym()
 	case '#':
 		SAVE_SYM("#", neq)
 	case '<':
-		ch = get_char();
+		ch = get_char(context);
 		if (ch == '=') {
 			SAVE_SYM("<=", leq)
 		}
-		unget_char(ch);
+		unget_char(context, ch);
 		SAVE_SYM("<", lss)
 	case '>':
-		ch = get_char();
+		ch = get_char(context);
 		if (ch == '=')
 			SAVE_SYM(">=", geq)
 
-		unget_char(ch);
+		unget_char(context, ch);
 		SAVE_SYM(">", gtr)
 	default:
 		if (isdigit(ch)) {
@@ -133,30 +133,30 @@ getsym()
 			do {
 				num = 10 * num + ch - '0';
 				count++;
-				ch = get_char();
+				ch = get_char(context);
 			} while (ch != EOF && isdigit(ch));
 			sprintf(id, "%d", num);
 
 			if (isalpha(ch)) {
 				id[count] = ch;
-				for (ch = get_char(); isalnum(ch);
-				     ch = get_char())
+				for (ch = get_char(context); isalnum(ch);
+				     ch = get_char(context))
 					id[++count] = ch;
 
 				invalid_symbol();
 			}
-			unget_char(ch);
+			unget_char(context, ch);
 			return number;
 		} else if (isalpha(ch)) {
 			id_len = 0;
 			do {
 				if (id_len < MAX_IDENT)
 					id[id_len++] = ch;
-				ch = get_char();
+				ch = get_char(context);
 			} while (ch != EOF && isalnum(ch));
 			id[id_len] = 0;
 
-			unget_char(ch);
+			unget_char(context, ch);
 			return key2sym(id);
 		}
 
