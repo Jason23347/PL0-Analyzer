@@ -52,6 +52,7 @@ typedef struct {
 
 context_t *context_init();
 void context_free(context_t *context);
+context_t *context_fork(context_t *parent);
 
 /**
  * Functions of tokens

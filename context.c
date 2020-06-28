@@ -60,6 +60,21 @@ context_init()
 	return context;
 }
 
+context_t *
+context_fork(context_t *parent)
+{
+	context_t *context;
+	if (!(context = context_init()))
+		return NULL;
+
+	/* prev fot ident table, next for free */
+	context->prev = parent;
+	context_tail->next = context;
+	context_tail = context;
+
+	return context;
+}
+
 void
 context_free(context_t *context)
 {
