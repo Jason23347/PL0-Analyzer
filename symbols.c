@@ -260,13 +260,13 @@ token_add(context_t *context, int flag)
 	}
 
 	int len = strlen(id);
-	t->value = malloc(len);
+	t->value = malloc(len + 1);
 	if (!t->value) {
 		fprintf(stderr, "Out of mempry\n");
 		exit(1);
 	}
 	t->type = flag;
-	memcpy(t->value, id, len);
+	memcpy(t->value, id, len + 1);
 
 	context->token_tail->next = t;
 	context->token_tail = t;

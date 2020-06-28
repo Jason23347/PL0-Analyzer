@@ -67,7 +67,7 @@ parse(context_t *context)
 			assert(context_next(context), eql); // =
 
 			assert(context_next(context), number); // 123
-			int tmp = atoi(context->token_tail->value);
+			size_t tmp = atoi(context->token_tail->value);
 			ident_assign(context, id, &tmp);
 		} while (context_next(context)->token_tail->type == comma); // ,
 
@@ -122,7 +122,7 @@ parse_statement(context_t *context)
 
 		assert(context_next(context), becomes); // :=
 		// a + 1
-		int ret = parse_expression(context_next(context));
+		size_t ret = parse_expression(context_next(context));
 
 		if (id)
 			ident_assign(context, id, &ret);
@@ -187,13 +187,13 @@ parse_statement(context_t *context)
 
 		do {
 			assert(context_next(context), ident); // id
-			int tmp;
+			size_t tmp;
 			ident_t *id =
 				ident_find(context, context->token_tail->value);
 			if (!id) {
 				ident_undefined(context->token_tail->value);
 			} else {
-				if (scanf("%d", &tmp))
+				if (scanf("%ld", &tmp))
 					ident_assign(context, id, &tmp);
 			}
 		} while (context_next(context)->token_tail->type == comma); // ,
@@ -236,7 +236,7 @@ parse_factor(context_t *context)
 				ident_uninitialized(id->name);
 			return 0;
 		}
-		ret = *(int *)id->value;
+		ret = *(size_t *)id->value;
 	}
 
 	else if (context->token_tail->type == number) // 1
@@ -261,7 +261,7 @@ parse_term(context_t *context)
 		if (context->token_tail->type == times ||
 		    context->token_tail->type == slash) { // * or /
 			SYMBOL opt = context->token_tail->type;
-			ret = operation(ret, opt,
+			ret = operation(context, ret, opt,
 					parse_factor(context_next(context)));
 			continue;
 		}
@@ -272,7 +272,7 @@ parse_term(context_t *context)
 		if (context->token_tail->type == plus ||
 		    context->token_tail->type == minus) { // + and -
 			SYMBOL opt = context->token_tail->type;
-			ret = operation(ret, opt,
+			ret = operation(context, ret, opt,
 					parse_term(context_next(context)));
 			continue;
 		}
@@ -305,5 +305,6 @@ parse_condition(context_t *context)
 	assert_multi(context, 6, eql, neq, lss, leq, gtr, geq);
 
 	SYMBOL opt = context->token_tail->type;
-	return condition(ret, opt, parse_expression(context_next(context)));
+	return condition(context, ret, opt,
+			 parse_expression(context_next(context)));
 }
