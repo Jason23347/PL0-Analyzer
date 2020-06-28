@@ -23,7 +23,7 @@
 #include "context.h"
 
 static inline void
-invalid_token(const token_t *token, SYMBOL assumed)
+invalid_token_tail(const context_t *context, SYMBOL assumed)
 {
 	extern pos_t err;
 
@@ -47,7 +47,7 @@ assert_multi(const context_t *context, int num, ...)
 		if (context->token_tail->type == sym)
 			return;
 	}
-	invalid_token(context->token_tail, sym);
+	invalid_token_tail(context, sym);
 
 	va_end(ap);
 }
@@ -155,7 +155,7 @@ parse_statement(context_t *context)
 				parse_statement(
 					context_next(context)); // a := 1
 			else
-				invalid_token(context->token_tail, endsym);
+				invalid_token_tail(context, endsym);
 		} while (context->token_tail->type != endsym); // end
 	}
 
