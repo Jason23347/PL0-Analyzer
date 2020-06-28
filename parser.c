@@ -55,7 +55,6 @@ void
 parse(context_t *context)
 {
 	ident_t *id;
-	extern context_t *context_tail;
 
 	context_next(context);
 
@@ -91,14 +90,11 @@ parse(context_t *context)
 
 		assert(context_next(context), semicolon); // ;
 
-		context_t *new_context = context_init();
-		ident_assign(context, id, new_context);
+		context_t *new_context = context_fork(context);
+		if (!new_context)
+			return;
 		new_context->excute = false;
-
-		/* prev fot ident table, next for free */
-		new_context->prev = context;
-		context_tail->next = new_context;
-		context_tail = new_context;
+		ident_assign(context, id, new_context);
 
 		parse(new_context); // block
 
