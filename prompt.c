@@ -47,6 +47,6 @@ prompt_step_out(prompt_t *prompt)
 {
 	int depth = prompt->depth;
 	int len = prompt->length[depth - 1];
-	prompt->buffer[len + 1] = 0;
+	prompt->buffer[len] = 0;
 	prompt->depth--;
 }
