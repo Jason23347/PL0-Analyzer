@@ -150,9 +150,9 @@ void ident_dump(context_t *context);
 
 void ident_error(const context_t *context, const char *fmt, ...);
 #define ident_undefined(name)                                                  \
-	ident_error(context, "variable \"%s\" used but undefined\n", name)
+	ident_error(context, "variable \"%s\" used but undefined", name)
 #define ident_uninitialized(name)                                              \
-	ident_error(context, "variable \"%s\" used but not initialized\n", name)
+	ident_error(context, "variable \"%s\" used but not initialized", name)
 
 int operation(const context_t *context, int m, SYMBOL opt, int n);
 bool condition(const context_t *context, int m, SYMBOL opt, int n);

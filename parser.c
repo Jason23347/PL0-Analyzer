@@ -28,7 +28,7 @@ invalid_token_tail(const context_t *context, SYMBOL assumed)
 	extern pos_t err;
 
 	sprintf(context_top(context)->message,
-		"syntax:%d:%d: syntax error, expected \"%s\" but got \"%s\".\n",
+		"syntax:%d:%d: syntax error, expected \"%s\" but got \"%s\"",
 		err.row, err.col, sym2human(assumed),
 		sym2human(context->token_tail->type));
 	exit(1);

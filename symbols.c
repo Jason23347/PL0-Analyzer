@@ -66,8 +66,9 @@ unget_char(context_t *context, int ch)
 /* Print error info if symbol cannot be recongnized */
 #define invalid_symbol()                                                       \
 	{                                                                      \
-		sprintf(context_top(context)->message, "lex:%d:%d: invalid symbol: %s\n",   \
-			err.row, err.col, id);                                 \
+		sprintf(context_top(context)->message,                         \
+			"lex:%d:%d: invalid symbol: %s", err.row, err.col,     \
+			id);                                                   \
 		return nul;                                                    \
 	}
 
@@ -254,7 +255,7 @@ token_add(context_t *context, int flag)
 	} else {
 		t = malloc(sizeof(token_t));
 		if (!t) {
-			sprintf(context_top(context)->message, "Out of memory\n");
+			sprintf(context_top(context)->message, "Out of memory");
 			exit(1);
 		}
 	}

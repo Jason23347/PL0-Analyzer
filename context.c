@@ -64,7 +64,7 @@ context_fork(context_t *parent)
 {
 	context_t *context = calloc(1, sizeof(context_t));
 	if (!context) {
-		sprintf(context_top(context)->message, "Out of memory\n");
+		sprintf(context_top(context)->message, "Out of memory");
 		return NULL;
 	}
 

@@ -59,7 +59,7 @@ ident_add(context_t *context, const token_t *token, IDENT type)
 	}
 
 	if (context->id_num > PREALLOC_ID_NUM) {
-		sprintf(context_top(context)->message, "Out of memory\n");
+		sprintf(context_top(context)->message, "Out of memory");
 		exit(1);
 	}
 
