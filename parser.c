@@ -18,6 +18,7 @@
 
 #include <stdarg.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "interpreter.h"
 #include "prompt.h"
@@ -58,8 +59,6 @@ parse(context_t *context)
 {
 	ident_t *id;
 
-	context_next(context);
-
 	if (context->token_tail->type == constsym) { // const
 		do {
 			assert(context_next(context), ident); // id
@@ -73,7 +72,11 @@ parse(context_t *context)
 		} while (context_next(context)->token_tail->type == comma); // ,
 
 		assert(context, semicolon); // ;
-		context_next(context);
+		if (context_next(context)->token_tail->type == period) {
+			context_prev(context);
+			if (context_top(context)->depth)
+				context_next(context);
+		}
 	}
 
 	if (context->token_tail->type == varsym) { // var
@@ -83,14 +86,26 @@ parse(context_t *context)
 		} while (context_next(context)->token_tail->type == comma); // ,
 
 		assert(context, semicolon); // ;
-		context_next(context);
+		if (context_next(context)->token_tail->type == period) {
+			context_prev(context);
+			if (context_top(context)->depth)
+				context_next(context);
+		}
 	}
 
 	for (; context->token_tail->type == proceduresym;) { // procedure
+		bool is_multi_lined = false;
 		assert(context_next(context), ident); // id
 		ident_t *id = ident_add(context, context->token_tail, procvar);
 
 		assert(context_next(context), semicolon); // ;
+		if (context_next(context)->token_tail->type == period) {
+			prompt_step_in(context_top(context)->prompt, "proc> ");
+			context_top(context)->depth++;
+			is_multi_lined = true;
+			context_prev(context);
+			context_next(context);
+		}
 
 		context_t *new_context = context_fork(context);
 		if (!new_context)
@@ -98,7 +113,18 @@ parse(context_t *context)
 		new_context->excute = false;
 		ident_assign(context, id, new_context);
 
+		strcpy(new_context->tokens[0].value,
+		       context->token_tail->value);
+		new_context->tokens[0].type = context->token_tail->type;
+		new_context->token_num++;
+		context_prev(context);
+
 		parse(new_context); // block
+
+		if (is_multi_lined) {
+			context_top(context)->depth--;
+			prompt_step_out(context_top(context)->prompt);
+		}
 
 		assert(context, semicolon); // ;
 		context_next(context);
@@ -145,7 +171,8 @@ parse_statement(context_t *context)
 		bool is_multi_lined = 0;
 		if (context_next(context)->token_tail->type == period) {
 			is_multi_lined = 1;
-			prompt_step_in(context->prompt, ">> ");
+			context_top(context)->depth++;
+			prompt_step_in(context_top(context)->prompt, ">> ");
 			context_prev(context);
 		}
 		parse_statement(context_next(context)); // a := 1
@@ -177,7 +204,8 @@ parse_statement(context_t *context)
 		} while (context->token_tail->type != endsym); // end
 
 		if (is_multi_lined) {
-			prompt_step_out(context->prompt);
+			context_top(context)->depth--;
+			prompt_step_out(context_top(context)->prompt);
 		}
 	}
 
@@ -188,11 +216,11 @@ parse_statement(context_t *context)
 		/* FIXME this should only be valid in CLI mode */
 		if (context_next(context)->token_tail->type == period) {
 			context_prev(context);
-			prompt_step_in(context->prompt, "if> ");
-			context->depth++;
+			prompt_step_in(context_top(context)->prompt, "if> ");
+			context_top(context)->depth++;
 			parse_statement(context_next(context));
-			context->depth--;
-			prompt_step_out(context->prompt);
+			context_top(context)->depth--;
+			prompt_step_out(context_top(context)->prompt);
 		} else
 			parse_statement(context); // a := 1
 
@@ -209,8 +237,8 @@ parse_statement(context_t *context)
 		if (context_next(context)->token_tail->type == period) {
 			is_multi_lined = true;
 			context_prev(context);
-			prompt_step_in(context->prompt, "lp >");
-			context->depth++;
+			prompt_step_in(context_top(context)->prompt, "loop >");
+			context_top(context)->depth++;
 			context_next(context);
 		}
 
@@ -218,8 +246,8 @@ parse_statement(context_t *context)
 		context->scan = false;
 
 		if (is_multi_lined) {
-			context->depth--;
-			prompt_step_out(context->prompt);
+			context_top(context)->depth--;
+			prompt_step_out(context_top(context)->prompt);
 		}
 
 		if (!context->excute) {
