@@ -180,7 +180,7 @@ cli_run()
 			/* Set timeout for 0.1 sec */
 			if ((end.tv_sec - start.tv_sec) * 1000000 +
 				    (end.tv_usec - start.tv_usec) >
-			    100000) {
+			    1000) {
 				timed_out = 1;
 				break;
 			}
