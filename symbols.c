@@ -66,7 +66,7 @@ unget_char(context_t *context, int ch)
 		sprintf(context_top(context)->message,                         \
 			"lex:%d:%d: invalid symbol: %s", err.row, err.col,     \
 			id);                                                   \
-		return nul;                                                    \
+		exit(1);                                                    \
 	}
 
 SYMBOL
