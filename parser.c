@@ -109,15 +109,14 @@ parse(context_t *context)
 	parse_statement(context); // a := 1
 
 	/* End of program */
-	if (context->token_tail->type == period) // .
+	if (context->token_tail->type == semicolon || // ;
+	    context->token_tail->type == period) // .
 		return;
 }
 
 void
 parse_statement(context_t *context)
 {
-	prompt_t *prompt = context->prompt;
-
 	if (context->token_tail->type == ident) { // id
 		ident_t *id = ident_find(context, context->token_tail->value);
 		if (!id)
@@ -127,8 +126,7 @@ parse_statement(context_t *context)
 		// a + 1
 		size_t ret = parse_expression(context_next(context));
 
-		if (id)
-			ident_assign(context, id, &ret);
+		ident_assign(context, id, &ret);
 	}
 
 	else if (context->token_tail->type == callsym) { // call
@@ -145,7 +143,14 @@ parse_statement(context_t *context)
 	}
 
 	else if (context->token_tail->type == beginsym) { // begin
+		bool is_multi_lined = 0;
+		if (context_next(context)->token_tail->type == period) {
+			is_multi_lined = 1;
+			prompt_step_in(context->prompt, ">> ");
+			context_prev(context);
+		}
 		parse_statement(context_next(context)); // a := 1
+
 		/* Return when got an 'end' symbol,
 			or assumed to be a semicolon with afterward other statements */
 		if (context->token_tail->type == endsym) { // end
@@ -154,12 +159,25 @@ parse_statement(context_t *context)
 		}
 
 		do {
-			if (context->token_tail->type == semicolon) // ;
-				parse_statement(
-					context_next(context)); // a := 1
-			else
+			if (!(context->token_tail->type == semicolon)) // ;
 				invalid_token_tail(context, endsym);
+
+			if (is_multi_lined &&
+			    context_next(context)->token_tail->type == period) {
+				context_next(context);
+			}
+
+			parse_statement(context); // a := 1
+
+			if (is_multi_lined &&
+			    context->token_tail->type == period) {
+				context_next(context);
+			}
 		} while (context->token_tail->type != endsym); // end
+
+		if (is_multi_lined) {
+			prompt_step_out(context->prompt);
+		}
 	}
 
 	else if (context->token_tail->type == ifsym) { // if
@@ -168,11 +186,11 @@ parse_statement(context_t *context)
 		assert(context, thensym); // then
 		/* FIXME this should only be valid in CLI mode */
 		if (context_next(context)->token_tail->type == period) {
-			prompt_step_in(prompt, "if> ");
+			prompt_step_in(context->prompt, "if> ");
 			context->depth++;
-			parse_statement(context_next(context)); // a := 1
+			parse_statement(context_next(context));
 			context->depth--;
-			prompt_step_out(prompt);
+			prompt_step_out(context->prompt);
 		} else
 			parse_statement(context); // a := 1
 
@@ -180,14 +198,14 @@ parse_statement(context_t *context)
 	}
 
 	else if (context->token_tail->type == whilesym) { // while
-		token_t *hook = context->token_tail;
+		token_t *token_hook = context->token_tail;
 		bool excute = context->excute;
 		context->excute &= parse_condition(context_next(context));
 		do {
 			assert(context, dosym); // do
 			parse_statement(context_next(context)); // a := 1
 			context->scan = false;
-			context->token_tail = hook;
+			context->token_tail = token_hook;
 			excute = parse_condition(context_next(context));
 		} while (excute);
 		context->scan = true;
