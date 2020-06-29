@@ -53,9 +53,9 @@ print_help(char **argv)
 
 #define prompt_reset()                                                         \
 	{                                                                      \
-		context = shm_attach(&shm[1]);                                 \
 		prompt_setup(context->prompt, "PL0> ");                        \
 		shm_dettach(&shm[1]);                                          \
+		shm_attach(&shm[1]);                                           \
 	}
 
 void
@@ -204,6 +204,7 @@ cli_run()
 			/* Let child thread bort */
 			kill(pid, SIGABRT);
 			fprintf(stderr, "interpreter timeout\n");
+			prompt_setup(context->prompt, "PL0> ");
 			prompt_reset();
 		}
 
