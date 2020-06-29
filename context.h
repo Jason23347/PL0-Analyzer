@@ -24,7 +24,7 @@
 #include "interpreter.h"
 
 #define PREALLOC_SYM_NUM 0x040
-#define PREALLOC_ID_NUM 0x10
+#define MAX_IDENT_NUM 0x10
 
 #define MAX_CONTEXT_MSG_LEN 128
 
@@ -43,7 +43,7 @@ typedef struct {
 	int token_num;
 
 	/* Preallocated ident table, used by interpreter */
-	ident_t idents[PREALLOC_ID_NUM];
+	ident_t idents[MAX_IDENT_NUM];
 	ident_t *id_tail;
 	int id_num;
 
