@@ -88,29 +88,7 @@ context_top(const context_t *context)
 void
 context_free(context_t *context)
 {
-	int i;
-	ident_t *id = context->idents;
 	token_t *token = context->tokens;
-
-	for (i = 0; i < context->id_num; i++) {
-		free(id->value);
-		id = id->next;
-	}
-
-	if (context->id_num >= PREALLOC_ID_NUM) {
-		for (id = context->tokens[PREALLOC_ID_NUM - 1].next; id != NULL;
-		     id++) {
-			ident_t *tmp = id;
-			id = id->next;
-			free(tmp);
-		}
-	}
-
-	/* FIXME free(): invalid next size (fast) */
-	for (i = 0; i < context->token_num - 1; i++) {
-		free(token->value);
-		token = token->next;
-	}
 
 	if (context->token_num >= PREALLOC_SYM_NUM) {
 		for (token = context->tokens[PREALLOC_SYM_NUM - 1].next;
