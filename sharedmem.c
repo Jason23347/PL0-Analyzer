@@ -35,7 +35,7 @@ shm_setup(shm_t *shm)
 	/* Initialization */
 	memset(ptr, 0, shm->len);
 	/* Dettach */
-	shm_detach(ptr);
+	shm_dettach(ptr);
 
 	return shm->id;
 }
@@ -48,7 +48,7 @@ shm_attach(shm_t *shm)
 }
 
 int
-shm_detach(shm_t *shm)
+shm_dettach(shm_t *shm)
 {
 	return shmdt(shm->ptr);
 }

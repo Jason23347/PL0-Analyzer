@@ -29,6 +29,6 @@ typedef struct {
 
 int shm_setup(shm_t *shm);
 void *shm_attach(shm_t *shm);
-int shm_detach(shm_t *shm);
+int shm_dettach(shm_t *shm);
 
 #endif /* SHARED_MEM_H */
