@@ -40,6 +40,18 @@ context_next(context_t *context)
 	return context;
 }
 
+context_t *
+context_prev(context_t *context)
+{
+	if (!context->token_num)
+		return context;
+
+	context->token_tail = context->token_last_tail;
+	context->token_num--;
+
+	return context;
+}
+
 void
 context_init(context_t *context, FILE *instream, FILE *outstream)
 {

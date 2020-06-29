@@ -41,6 +41,7 @@ typedef struct {
 	token_t tokens[PREALLOC_SYM_NUM];
 	/* Tail of token chain*/
 	token_t *token_tail;
+	token_t *token_last_tail;
 	/* Count for tokens */
 	int token_num;
 
@@ -93,6 +94,7 @@ void token_dump(context_t *context);
 
 /* Scan in next token */
 context_t *context_next(context_t *context);
+context_t *context_prev(context_t *context);
 
 /**
  * Check if token->type matches the given SYMBOLs,
