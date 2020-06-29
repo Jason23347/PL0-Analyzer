@@ -24,7 +24,9 @@
 #include <readline/history.h>
 #include <sys/wait.h>
 #include <sys/time.h>
+#include <time.h>
 #include <sys/signal.h>
+#include <pthread.h>
 
 #include "sharedmem.h"
 #include "context.h"
@@ -59,12 +61,18 @@ cli_run()
 	pid_t pid;
 	struct timeval start, end;
 	int timed_out;
-	context_t context[1] = { { .id_num = 0, .idents = NULL } };
+	context_t *context;
+	pthread_mutex_t lock[1];
+	pthread_mutexattr_t attr[1];
+
+	/* initialize mutex lock for context->depth */
+	pthread_mutexattr_init(attr);
+	pthread_mutexattr_settype(attr, PTHREAD_MUTEX_RECURSIVE_NP);
+	pthread_mutex_init(lock, attr);
 
 	shm_t shm[2] = {
 		{ .len = MAX_CONTEXT_MSG_SIZE }, // message
-		{ .len = sizeof(size_t) +
-			 MAX_IDENT_NUM * sizeof(ident_t) }, // idents table
+		{ .len = sizeof(context_t) }, // context
 	};
 
 	for (shm_t *p = shm; p - shm < 2; p++) {
@@ -74,8 +82,15 @@ cli_run()
 		}
 	}
 
-	/* CLI mode readline */
-	while ((line = readline("PL0> ")) != NULL) {
+	if ((context = shm_attach(&shm[1])) == (void *)-1) {
+		perror("shm attach");
+		exit(1);
+	}
+	/* Initialize prompt */
+	prompt_setup(context->prompt, "PL0> ");
+
+	/* CLI mode, readline */
+	while ((line = readline(context->prompt->buffer)) != NULL) {
 		/* Chile thread not setup */
 		if (!process_count) {
 			/* Setup pipe */
@@ -102,13 +117,12 @@ cli_run()
 				/* Close output pipe */
 				close(fd[1]);
 				/* Attach shared memories */
-				if (shm_attach(&shm[0]) == (void *)-1 ||
-				    shm_attach(&shm[1]) == (void *)-1)
+				if (shm_attach(&shm[0]) == (void *)-1)
 					raise(SIGABRT);
+				/* Reset message */
 				context->message = shm[0].ptr;
 				context->message[0] = 0;
-				context->idents = shm[1].ptr + sizeof(size_t);
-				context->id_num = shm[1].ptr;
+
 				/* Run interpreter */
 				parse(context);
 
@@ -153,36 +167,53 @@ cli_run()
 		timed_out = 0;
 		/* non-blocking hanlding with timeout */
 		while (!waitpid(pid, &status, WNOHANG)) {
-			// TODO break on block
 			gettimeofday(&end, 0);
 #if defined(NDEBUG)
 			/* Set timeout for 0.1 sec */
-			if ((end.tv_sec - start.tv_sec) * 1000000 > 1000) {
-				kill(pid, SIGABRT);
-				fprintf(stderr, "interpreter timeout\n");
+			if ((end.tv_sec - start.tv_sec) * 1000000 +
+				    (end.tv_usec - start.tv_usec) >
+			    100000) {
 				timed_out = 1;
 				break;
 			}
+			/* Sleep for a while so waitpid was
+				not called that frequently */
+			struct timespec tspec = { .tv_nsec = 250 };
+			nanosleep(&tspec, &tspec);
 #endif
 		}
 
-		/* Child thread exited */
-		if (!timed_out) {
-			if (WIFEXITED(status) &&
-			    /* Child thread exited with non-zero value */
-			    WEXITSTATUS(status)) {
-				/* Attach shared memory */
-				char *message = shm_attach(&shm[0]);
-				/* Print error message */
-				fprintf(stderr, "%s\n", message);
-				shm_detach(&shm[0]);
-			} else if (WIFSTOPPED(status)) {
-				fprintf(stderr,
-					"Child process stopped unexpectly\n");
+		if (timed_out) {
+			/* Rettach context */
+			shm_detach(&shm[1]);
+			shm_attach(&shm[1]);
+			if (context->depth) {
+				/* Reattach prompt buffer */
+				shm_detach(&shm[2]);
+				shm_attach(&shm[2]);
+				continue;
 			}
+
+			/* Let child thread bort */
+			kill(pid, SIGABRT);
+			fprintf(stderr, "interpreter timeout\n");
+		}
+
+		/* Child thread exited */
+		if (WIFEXITED(status) &&
+		    /* Child thread exited with non-zero value */
+		    WEXITSTATUS(status)) {
+			/* Attach shared memory */
+			char *message = shm_attach(&shm[0]);
+			/* Print error message */
+			fprintf(stderr, "%s\n", message);
+			shm_detach(&shm[0]);
+		} else if (WIFSTOPPED(status)) {
+			fprintf(stderr, "Child process stopped unexpectly\n");
 		}
 		process_count = 0;
 	}
+	shm_detach(&shm[1]);
 }
 
 int

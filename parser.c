@@ -20,6 +20,7 @@
 #include <stdlib.h>
 
 #include "interpreter.h"
+#include "prompt.h"
 #include "context.h"
 
 static inline void
@@ -115,6 +116,8 @@ parse(context_t *context)
 void
 parse_statement(context_t *context)
 {
+	prompt_t *prompt = context->prompt;
+
 	if (context->token_tail->type == ident) { // id
 		ident_t *id = ident_find(context, context->token_tail->value);
 		if (!id)
@@ -160,22 +163,33 @@ parse_statement(context_t *context)
 	}
 
 	else if (context->token_tail->type == ifsym) { // if
-		bool tmp = context->excute;
+		bool excute = context->excute;
 		context->excute &= parse_condition(context_next(context));
 		assert(context, thensym); // then
-		parse_statement(context_next(context)); // a := 1
-		context->excute = tmp;
+		/* FIXME this should only be valid in CLI mode */
+		if (context_next(context)->token_tail->type == period) {
+			prompt_step_in(prompt, "if> ");
+			context->depth++;
+			parse_statement(context_next(context)); // a := 1
+			context->depth--;
+			prompt_step_out(prompt);
+		} else
+			parse_statement(context); // a := 1
+
+		context->excute = excute;
 	}
 
 	else if (context->token_tail->type == whilesym) { // while
 		token_t *hook = context->token_tail;
-		while (context->excute &&
-		       parse_condition(context_next(context))) {
+		bool excute = context->excute;
+		context->excute &= parse_condition(context_next(context));
+		do {
 			assert(context, dosym); // do
 			parse_statement(context_next(context)); // a := 1
 			context->scan = false;
 			context->token_tail = hook;
-		}
+			excute = parse_condition(context_next(context));
+		} while (excute);
 		context->scan = true;
 		for (; context->token_tail->next;
 		     context->token_tail = context->token_tail->next)
@@ -231,11 +245,6 @@ parse_factor(context_t *context)
 			ident_undefined(context->token_tail->value);
 			return 0;
 		}
-		if (!id->value) {
-			if (context->excute)
-				ident_uninitialized(id->name);
-			return 0;
-		}
 		ret = (int)id->value;
 	}
 
@@ -244,8 +253,9 @@ parse_factor(context_t *context)
 
 	else {
 		extern pos_t err;
-		sprintf(context->message, "syntax:%d:%d: invalid factor", err.col,
-			err.row);
+		sprintf(context_top(context)->message,
+			"syntax:%d:%d: invalid factor", err.col, err.row);
+		exit(1);
 	}
 
 	return ret;
