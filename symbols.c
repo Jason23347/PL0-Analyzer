@@ -63,10 +63,10 @@ unget_char(context_t *context, int ch)
 /* Print error info if symbol cannot be recongnized */
 #define invalid_symbol()                                                       \
 	{                                                                      \
-		sprintf(context_top(context)->message,                         \
+		sprintf(context_top_restrict(context)->message,                \
 			"lex:%d:%d: invalid symbol: %s", err.row, err.col,     \
 			id);                                                   \
-		exit(1);                                                    \
+		exit(1);                                                       \
 	}
 
 SYMBOL
