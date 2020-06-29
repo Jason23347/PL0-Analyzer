@@ -266,6 +266,7 @@ token_add(context_t *context, int flag)
 	t->type = flag;
 	memcpy(t->value, id, len + 1);
 
+	context->token_last_tail = context->token_tail;
 	context->token_tail->next = t;
 	context->token_tail = t;
 
