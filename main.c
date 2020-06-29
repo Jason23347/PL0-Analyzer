@@ -131,6 +131,7 @@ cli_run()
 				context->message[0] = 0;
 
 				/* Run interpreter */
+				context_next(context);
 				parse(context);
 
 				/* Debug info */
