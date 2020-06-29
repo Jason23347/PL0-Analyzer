@@ -20,8 +20,6 @@
 
 #include <stdlib.h>
 
-context_t *context_tail;
-
 /* Get next token, abort on error */
 context_t *
 context_next(context_t *context)
@@ -50,8 +48,6 @@ context_init(context_t *context, FILE *instream, FILE *outstream)
 
 	context->token_tail = context->tokens;
 	context->token_num = 0;
-	context->id_tail = context->idents;
-	context->id_num = 0;
 
 	context->prev = 0;
 
@@ -62,18 +58,30 @@ context_init(context_t *context, FILE *instream, FILE *outstream)
 context_t *
 context_fork(context_t *parent)
 {
-	context_t *context = calloc(1, sizeof(context_t));
-	if (!context) {
-		sprintf(context_top(context)->message, "Out of memory");
-		exit(1);
-	}
+	context_t *context;
+	ident_t *ident_table;
 
-	/* prev fot ident table, next for free */
+	if (!(context = calloc(1, sizeof(context_t))))
+		goto no_mem;
+	if (!(ident_table = malloc(MAX_IDENT_NUM * sizeof(ident_t))))
+		goto no_mem;
+	if (!(context->id_num = calloc(1, sizeof(size_t))))
+		goto no_mem;
+
+	/* Basic setups */
+	context_init(context, parent->instream, parent->outstream);
+
+	/* prev for ident table */
 	context->prev = parent;
-	context_tail->next = context;
-	context_tail = context;
+
+	/* Setup ident table */
+	context->idents = ident_table;
 
 	return context;
+
+no_mem:
+	sprintf(context_top(context)->message, "Out of memory");
+	exit(1);
 }
 
 const context_t *
@@ -84,4 +92,3 @@ context_top(const context_t *context)
 		;
 	return tmp;
 }
-

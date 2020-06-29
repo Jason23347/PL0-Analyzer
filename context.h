@@ -24,13 +24,14 @@
 #include "interpreter.h"
 
 #define PREALLOC_SYM_NUM 0x040
-#define MAX_IDENT_NUM 0x10
+#define MAX_IDENT_NUM 0x40
 
 #define MAX_CONTEXT_MSG_SIZE 128
 #define MAX_TOKEN_BUFFER_SIZE 2048
 
 /* Context tree node of each block */
 typedef struct {
+	/* I/O stream */
 	FILE *instream;
 	FILE *outstream;
 
@@ -43,10 +44,9 @@ typedef struct {
 	/* Count for tokens */
 	int token_num;
 
-	/* Preallocated ident table, used by interpreter */
-	ident_t idents[MAX_IDENT_NUM];
-	ident_t *id_tail;
-	int id_num;
+	/* Ident table, used by interpreter */
+	ident_t *idents;
+	size_t *id_num;
 
 	/* For conditions */
 	bool excute;
@@ -64,8 +64,7 @@ typedef struct {
 void context_init(context_t *context, FILE *instream, FILE *outstream);
 context_t *context_fork(context_t *parent);
 
-const context_t *
-context_top(const context_t *context);
+const context_t *context_top(const context_t *context);
 
 /**
  * Functions of tokens
