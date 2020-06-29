@@ -21,6 +21,9 @@
 
 #include <stdio.h>
 
+/* Max length of an ident */
+#define MAX_IDENT_SIZE 20
+
 /* Enumulate of all the symbols */
 typedef enum {
 	nul, // null

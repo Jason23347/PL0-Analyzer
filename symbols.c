@@ -26,11 +26,8 @@
 /* Current position and error position */
 pos_t cur, err;
 
-/* Max length of an ident */
-#define MAX_IDENT 20
-
 /* Ident variable */
-char id[MAX_IDENT] = "";
+char id[MAX_IDENT_SIZE] = "";
 /* Ident length */
 int id_len;
 
@@ -151,7 +148,7 @@ getsym(context_t *context)
 		} else if (isalpha(ch)) {
 			id_len = 0;
 			do {
-				if (id_len < MAX_IDENT)
+				if (id_len < MAX_IDENT_SIZE)
 					id[id_len++] = ch;
 				ch = get_char(context);
 			} while (ch != EOF && isalnum(ch));
