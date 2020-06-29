@@ -216,7 +216,8 @@ cli_run()
 			/* Attach shared memory */
 			char *message = shm_attach(&shm[0]);
 			/* Print error message */
-			fprintf(stderr, "%s\n", message);
+			if (message[0])
+				fprintf(stderr, "%s\n", message);
 			shm_dettach(&shm[0]);
 			prompt_reset()
 		} else if (WIFSTOPPED(status)) {
