@@ -47,13 +47,13 @@ ident_add(context_t *context, const token_t *token, IDENT type)
 	ident_t *id;
 
 	if (token->type != ident) {
-		ident_error(context, "cannot add ident of \"%s\" type",
+		ident_error(context, "cannot declare ident of \"%s\" type",
 			    sym2human(token->type));
 		return NULL;
 	}
 
 	if (ident_find(context, token->value)) {
-		ident_error(context, "cannot add ident \"%s\" duplicately",
+		ident_error(context, "cannot declare ident \"%s\" duplicately",
 			    token->value);
 		return NULL;
 	}
