@@ -45,8 +45,8 @@ typedef struct {
 	int token_num;
 
 	/* Ident table, used by interpreter */
-	ident_t *idents;
-	size_t *id_num;
+	ident_t idents[MAX_IDENT_NUM];
+	size_t id_num;
 
 	/* For conditions */
 	bool excute;
@@ -56,9 +56,10 @@ typedef struct {
 	/* Error message */
 	char *message;
 
-	/* Tow-way linked list */
+	int depth;
+
+	/* Point to previous context */
 	void *prev;
-	void *next;
 } context_t;
 
 void context_init(context_t *context, FILE *instream, FILE *outstream);

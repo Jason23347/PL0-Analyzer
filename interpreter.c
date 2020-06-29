@@ -58,21 +58,18 @@ ident_add(context_t *context, const token_t *token, IDENT type)
 		return NULL;
 	}
 
-	if (*context->id_num > MAX_IDENT_NUM) {
+	if (context->id_num > MAX_IDENT_NUM) {
 		sprintf(context_top(context)->message, "Out of memory");
 		exit(1);
 	}
 
-	id = context->idents + (*context->id_num);
+	id = context->idents + (context->id_num);
 
 	strcpy(id->name, token->value);
 	id->type = type;
 	id->value = 0;
 
-	{
-		int num = *context->id_num + 1;
-		*context->id_num = num;
-	}
+	context->id_num++;
 
 	return id;
 }
@@ -82,8 +79,7 @@ ident_find(context_t *context, const char *name)
 {
 	for (context_t *c = context; c != NULL; c = c->prev) {
 		ident_t *ptr = c->idents;
-		size_t num = *c->id_num;
-		for (int i = 0; i < num; i++) {
+		for (int i = 0; i < c->id_num; i++) {
 			if (!strcmp(ptr->name, name))
 				return ptr;
 			ptr++;
@@ -102,8 +98,7 @@ ident_assign(const context_t *context, ident_t *id, void *value)
 
 	if (id->value) {
 		if (id->type == constvar) {
-			ident_error(context,
-				    "cannot assign value to const %s",
+			ident_error(context, "cannot assign value to const %s",
 				    id->name);
 			return -1;
 		}
@@ -121,12 +116,11 @@ void
 ident_dump(context_t *context)
 {
 	const ident_t *ptr = context->idents;
-	size_t num = *context->id_num;
 
 	printf("+---------------+----------+\n"
 	       "|          name |    value |\n"
 	       "+---------------+----------+\n");
-	for (size_t i = 0; i < num; i++) {
+	for (size_t i = 0; i < context->id_num; i++) {
 		if (ptr->type == procvar) {
 			if (ptr->value)
 				printf("|%14s |%9s |\n", ptr->name, "(addr)");

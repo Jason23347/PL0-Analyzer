@@ -59,13 +59,7 @@ context_t *
 context_fork(context_t *parent)
 {
 	context_t *context;
-	ident_t *ident_table;
-
 	if (!(context = calloc(1, sizeof(context_t))))
-		goto no_mem;
-	if (!(ident_table = malloc(MAX_IDENT_NUM * sizeof(ident_t))))
-		goto no_mem;
-	if (!(context->id_num = calloc(1, sizeof(size_t))))
 		goto no_mem;
 
 	/* Basic setups */
@@ -73,9 +67,6 @@ context_fork(context_t *parent)
 
 	/* prev for ident table */
 	context->prev = parent;
-
-	/* Setup ident table */
-	context->idents = ident_table;
 
 	return context;
 
