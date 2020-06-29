@@ -260,7 +260,7 @@ token_add(context_t *context, int flag)
 	int len = strlen(id);
 	t->value = malloc(len + 1);
 	if (!t->value) {
-		fprintf(stderr, "Out of mempry\n");
+		sprintf(context->message, "Out of mempry");
 		exit(1);
 	}
 	t->type = flag;

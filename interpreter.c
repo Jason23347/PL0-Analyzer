@@ -47,13 +47,13 @@ ident_add(context_t *context, const token_t *token, IDENT type)
 	ident_t *id;
 
 	if (token->type != ident) {
-		ident_error(context, "cannot add ident of \"%s\" type\n",
+		ident_error(context, "cannot add ident of \"%s\" type",
 			    sym2human(token->type));
 		return NULL;
 	}
 
 	if (ident_find(context, token->value)) {
-		ident_error(context, "cannot add ident \"%s\" duplicately\n",
+		ident_error(context, "cannot add ident \"%s\" duplicately",
 			    token->value);
 		return NULL;
 	}
@@ -103,7 +103,7 @@ ident_assign(const context_t *context, ident_t *id, void *value)
 	if (id->value) {
 		if (id->type == constvar) {
 			ident_error(context,
-				    "cannot assign value to const %s\n",
+				    "cannot assign value to const %s",
 				    id->name);
 			return -1;
 		}
@@ -154,7 +154,7 @@ operation(const context_t *context, int m, SYMBOL opt, int n)
 	case slash:
 		return m / n;
 	default:
-		ident_error(context, "invalid operation: \"%s\"\n",
+		ident_error(context, "invalid operation: \"%s\"",
 			    sym2human(opt));
 		return 0;
 	}
@@ -177,7 +177,7 @@ condition(const context_t *context, int m, SYMBOL opt, int n)
 	case geq:
 		return m >= n;
 	default:
-		ident_error(context, "invalid operation token: \"%s\"\n",
+		ident_error(context, "invalid operation token: \"%s\"",
 			    sym2human(opt));
 		return false;
 	}

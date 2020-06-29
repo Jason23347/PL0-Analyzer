@@ -244,7 +244,7 @@ parse_factor(context_t *context)
 
 	else {
 		extern pos_t err;
-		fprintf(stderr, "syntax:%d:%d: invalid factor\n", err.col,
+		sprintf(context->message, "syntax:%d:%d: invalid factor", err.col,
 			err.row);
 	}
 
