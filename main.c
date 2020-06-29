@@ -142,6 +142,7 @@ cli_run()
 				perror("pipe write error");
 				exit(1);
 			}
+			add_history(line);
 		}
 
 		/* Father thread */
