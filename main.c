@@ -25,7 +25,6 @@
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <sys/signal.h>
-#include <sys/shm.h>
 
 #include "sharedmem.h"
 #include "context.h"
@@ -59,20 +58,18 @@ cli_run()
 	FILE *instream;
 	pid_t pid;
 	struct timeval start, end;
-	context_t context[1];
-	int shmid;
 	int timed_out;
+	context_t context[1] = { { .id_num = 0, .idents = NULL } };
 
-	shm_t shm[3] = {
+	shm_t shm[2] = {
 		{ .len = MAX_CONTEXT_MSG_SIZE }, // message
-		{ .len = MAX_TOKEN_BUFFER_SIZE }, // token name buffer
-		{ .len = MAX_IDENT_NUM }, // idents table
+		{ .len = sizeof(size_t) +
+			 MAX_IDENT_NUM * sizeof(ident_t) }, // idents table
 	};
 
-	for (shm_t *p = shm; p - shm < 3; p++) {
-		shmid = shm_setup(p);
-		if (shmid == -1) {
-			perror("shmget");
+	for (shm_t *p = shm; p - shm < 2; p++) {
+		if (shm_setup(p) == -1) {
+			perror("shm setup");
 			exit(1);
 		}
 	}
@@ -104,19 +101,24 @@ cli_run()
 			if (pid == 0) { /* Child thread */
 				/* Close output pipe */
 				close(fd[1]);
-				/* Attach shared memory */
-				shm_attach(&shm[0]);
+				/* Attach shared memories */
+				if (shm_attach(&shm[0]) == (void *)-1 ||
+				    shm_attach(&shm[1]) == (void *)-1)
+					raise(SIGABRT);
 				context->message = shm[0].ptr;
 				context->message[0] = 0;
+				context->idents = shm[1].ptr + sizeof(size_t);
+				context->id_num = shm[1].ptr;
 				/* Run interpreter */
 				parse(context);
-				shmdt(context->message);
 
 				/* Debug info */
 				printf("\nIdent table:\n");
 				ident_dump(context);
 				fflush(stdout);
+				/* Dettach shared memories */
 				shm_detach(&shm[0]);
+				shm_detach(&shm[1]);
 				/* Exit with 0 if no error,
 					or 1 handled by interpreter */
 				exit(0);
@@ -164,14 +166,18 @@ cli_run()
 		}
 
 		/* Child thread exited */
-		if (!timed_out && WIFEXITED(status)) {
-			/* Child thread exited with non-zero value */
-			if (WEXITSTATUS(status)) {
+		if (!timed_out) {
+			if (WIFEXITED(status) &&
+			    /* Child thread exited with non-zero value */
+			    WEXITSTATUS(status)) {
 				/* Attach shared memory */
 				char *message = shm_attach(&shm[0]);
 				/* Print error message */
 				fprintf(stderr, "%s\n", message);
 				shm_detach(&shm[0]);
+			} else if (WIFSTOPPED(status)) {
+				fprintf(stderr,
+					"Child process stopped unexpectly\n");
 			}
 		}
 		process_count = 0;
