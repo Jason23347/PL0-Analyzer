@@ -252,18 +252,14 @@ token_add(context_t *context, int flag)
 	} else {
 		t = malloc(sizeof(token_t));
 		if (!t) {
-			sprintf(context_top(context)->message, "Out of memory");
+			sprintf(context_top_restrict(context)->message,
+				"Out of memory");
 			exit(1);
 		}
 	}
 
-	int len = strlen(id);
-	t->value = malloc(len + 1);
-	if (!t->value) {
-		sprintf(context_top(context)->message, "Out of mempry");
-		exit(1);
-	}
 	t->type = flag;
+	int len = strlen(id);
 	memcpy(t->value, id, len + 1);
 
 	context->token_last_tail = context->token_tail;

@@ -69,7 +69,7 @@ typedef struct {
 
 /* Chain node of symbols */
 typedef struct {
-	char *value;
+	char value[MAX_IDENT_SIZE];
 	SYMBOL type;
 	void *next;
 } token_t;
