@@ -18,14 +18,25 @@
 
 #include "sharedmem.h"
 
+#include <memory.h>
 #include <sys/shm.h>
-
-#define NULL (void *)0
 
 int
 shm_setup(shm_t *shm)
 {
+	/* Create new shared memory */
 	shm->id = shmget(0, shm->len, IPC_CREAT | 0600);
+	if (shm->id == -1)
+		return -1;
+	/* Attach to shared memory */
+	void *ptr = shm_attach(shm);
+	if (ptr == (void *)-1)
+		return -1;
+	/* Initialization */
+	memset(ptr, 0, shm->len);
+	/* Dettach */
+	shm_detach(ptr);
+
 	return shm->id;
 }
 
