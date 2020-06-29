@@ -177,10 +177,10 @@ cli_run()
 		while (!waitpid(pid, &status, WNOHANG)) {
 			gettimeofday(&end, 0);
 #if defined(NDEBUG)
-			/* Set timeout for 0.1 sec */
+			/* Set timeout for 0.01 sec */
 			if ((end.tv_sec - start.tv_sec) * 1000000 +
 				    (end.tv_usec - start.tv_usec) >
-			    100000) {
+			    10000) {
 				timed_out = 1;
 				break;
 			}
