@@ -53,9 +53,9 @@ print_help(char **argv)
 
 #define prompt_reset()                                                         \
 	{                                                                      \
-		context = shm_attach(&shm[1]);                                 \
 		prompt_setup(context->prompt, "PL0> ");                        \
 		shm_dettach(&shm[1]);                                          \
+		shm_attach(&shm[1]);                                           \
 	}
 
 void
