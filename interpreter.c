@@ -37,6 +37,8 @@ ident_error(const context_t *context, const char *fmt, ...)
 	vsprintf(context_top(context)->message, fmt, ap);
 
 	va_end(ap);
+
+	exit(1);
 }
 
 ident_t *
