@@ -160,7 +160,7 @@ cli_run()
 		if (strcmp(line, "")) {
 			/* Write line to pipe */
 			if (!write(fd[1], line, strlen(line)) ||
-			    !write(fd[1], ".\n", 2)) {
+			    !write(fd[1], ".", 1)) {
 				perror("pipe write error");
 				exit(1);
 			}
