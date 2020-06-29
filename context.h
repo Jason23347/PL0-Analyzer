@@ -26,7 +26,8 @@
 #define PREALLOC_SYM_NUM 0x040
 #define MAX_IDENT_NUM 0x10
 
-#define MAX_CONTEXT_MSG_LEN 128
+#define MAX_CONTEXT_MSG_SIZE 128
+#define MAX_TOKEN_BUFFER_SIZE 2048
 
 /* Context tree node of each block */
 typedef struct {

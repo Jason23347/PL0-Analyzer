@@ -27,6 +27,7 @@
 #include <sys/signal.h>
 #include <sys/shm.h>
 
+#include "sharedmem.h"
 #include "context.h"
 
 #define NDEBUG
@@ -50,7 +51,7 @@ print_help(char **argv)
 }
 
 void
-cli_run(char *filename)
+cli_run()
 {
 	char *line = 0;
 	int fd[2];
@@ -63,10 +64,18 @@ cli_run(char *filename)
 	int timed_out;
 	extern context_t *context_tail;
 
-	shmid = shmget(0, MAX_CONTEXT_MSG_LEN, IPC_CREAT | 0600);
-	if (shmid == -1) {
-		perror("shmget");
-		exit(1);
+	shm_t shm[3] = {
+		{ .len = MAX_CONTEXT_MSG_SIZE }, // message
+		{ .len = MAX_TOKEN_BUFFER_SIZE }, // token name buffer
+		{ .len = MAX_IDENT_NUM }, // idents table
+	};
+
+	for (shm_t *p = shm; p - shm < 3; p++) {
+		shmid = shm_setup(p);
+		if (shmid == -1) {
+			perror("shmget");
+			exit(1);
+		}
 	}
 
 	/* CLI mode readline */
@@ -98,7 +107,8 @@ cli_run(char *filename)
 				/* Close output pipe */
 				close(fd[1]);
 				/* Attach shared memory */
-				context->message = shmat(shmid, NULL, 0);
+				shm_attach(&shm[0]);
+				context->message = shm[0].ptr;
 				context->message[0] = 0;
 				/* Run interpreter */
 				parse(context);
@@ -108,6 +118,7 @@ cli_run(char *filename)
 				printf("\nIdent table:\n");
 				ident_dump(context);
 				fflush(stdout);
+				shm_detach(&shm[0]);
 				/* Exit with 0 if no error,
 					or 1 handled by interpreter */
 				exit(0);
@@ -138,17 +149,16 @@ cli_run(char *filename)
 		/* Set start time for timeout */
 		gettimeofday(&start, 0);
 		/* initialize status for waitpid */
-		status = -1;
 		timed_out = 0;
 		/* non-blocking hanlding with timeout */
-		while (waitpid(-1, &status, WNOHANG) == 0) {
+		while (!waitpid(pid, &status, WNOHANG)) {
 			// TODO break on block
 			gettimeofday(&end, 0);
 #if defined(NDEBUG)
 			/* Set timeout for 0.1 sec */
-			if ((end.tv_sec - start.tv_sec) * 1000000 > 10000) {
-				fprintf(stderr, "interpreter timeout\n");
+			if ((end.tv_sec - start.tv_sec) * 1000000 > 1000) {
 				kill(pid, SIGABRT);
+				fprintf(stderr, "interpreter timeout\n");
 				timed_out = 1;
 				break;
 			}
@@ -160,10 +170,10 @@ cli_run(char *filename)
 			/* Child thread exited with non-zero value */
 			if (WEXITSTATUS(status)) {
 				/* Attach shared memory */
-				char *message = shmat(shmid, NULL, 0);
+				char *message = shm_attach(&shm[0]);
 				/* Print error message */
 				fprintf(stderr, "%s\n", message);
-				shmdt(message);
+				shm_detach(&shm[0]);
 			}
 		}
 		process_count = 0;
@@ -198,7 +208,7 @@ main(int argc, char *argv[])
 	}
 
 	if (is_cli_mode)
-		cli_run(argv[0]);
+		cli_run();
 
 	return 0;
 }
