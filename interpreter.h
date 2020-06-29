@@ -30,7 +30,7 @@ typedef enum {
 } IDENT;
 
 typedef struct {
-	const char *name;
+	char name[MAX_IDENT_SIZE];
 	void *value;
 	IDENT type;
 

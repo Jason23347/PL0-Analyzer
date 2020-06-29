@@ -65,7 +65,7 @@ ident_add(context_t *context, const token_t *token, IDENT type)
 
 	id = context->idents + context->id_num;
 
-	id->name = token->value;
+	strcpy(id->name, token->value);
 	id->type = type;
 	id->value = NULL;
 
