@@ -22,15 +22,16 @@
 #include <stddef.h>
 
 #define MAX_PROMPT_SIZE 64
+#define MAX_DEPTH 8
 
 typedef struct {
-	char *buffer;
-	size_t len;
-	void *prev;
+	char buffer[MAX_PROMPT_SIZE];
+	size_t length[MAX_DEPTH];
+	int depth;
 } prompt_t;
 
 void prompt_setup(prompt_t *prompt, const char *str);
-void prompt_fork(prompt_t *prompt, prompt_t *parent, const char *str);
-void prompt_unfork(prompt_t *prompt);
+void prompt_step_in(prompt_t *prompt, const char *str);
+void prompt_step_out(prompt_t *prompt);
 
 #endif /* PROMPT_H */
