@@ -87,7 +87,7 @@ context_fork(context_t *parent)
 	return context;
 
 no_mem:
-	sprintf(context_top(context)->message, "Out of memory");
+	sprintf(context_top_restrict(context)->message, "Out of memory");
 	exit(1);
 }
 

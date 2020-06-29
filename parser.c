@@ -28,7 +28,7 @@ invalid_token_tail(const context_t *context, SYMBOL assumed)
 {
 	extern pos_t err;
 
-	sprintf(context_top(context)->message,
+	sprintf(context_top_restrict(context)->message,
 		"syntax:%d:%d: syntax error, expected \"%s\" but got \"%s\"",
 		err.row, err.col, sym2human(assumed),
 		sym2human(context->token_tail->type));
@@ -297,7 +297,7 @@ parse_factor(context_t *context)
 
 	else {
 		extern pos_t err;
-		sprintf(context_top(context)->message,
+		sprintf(context_top_restrict(context)->message,
 			"syntax:%d:%d: invalid factor", err.col, err.row);
 		exit(1);
 	}

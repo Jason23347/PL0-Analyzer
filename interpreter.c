@@ -32,9 +32,9 @@ ident_error(const context_t *context, const char *fmt, ...)
 
 	va_start(ap, fmt);
 
-	sprintf(context_top(context)->message, "interpreter:%d:%d: ", err.row,
+	sprintf(context_top_restrict(context)->message, "interpreter:%d:%d: ", err.row,
 		err.col);
-	vsprintf(context_top(context)->message, fmt, ap);
+	vsprintf(context_top_restrict(context)->message, fmt, ap);
 
 	va_end(ap);
 
@@ -59,7 +59,7 @@ ident_add(context_t *context, const token_t *token, IDENT type)
 	}
 
 	if (context->id_num > MAX_IDENT_NUM) {
-		sprintf(context_top(context)->message, "Out of memory");
+		sprintf(context_top_restrict(context)->message, "Out of memory");
 		exit(1);
 	}
 
