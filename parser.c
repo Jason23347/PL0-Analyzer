@@ -109,8 +109,7 @@ parse(context_t *context)
 	parse_statement(context); // a := 1
 
 	/* End of program */
-	if (context->token_tail->type == semicolon || // ;
-	    context->token_tail->type == period) // .
+	if (context->token_tail->type == period) // .
 		return;
 }
 
@@ -164,6 +163,7 @@ parse_statement(context_t *context)
 
 			if (is_multi_lined &&
 			    context_next(context)->token_tail->type == period) {
+				context_prev(context);
 				context_next(context);
 			}
 
@@ -171,6 +171,7 @@ parse_statement(context_t *context)
 
 			if (is_multi_lined &&
 			    context->token_tail->type == period) {
+				context_prev(context);
 				context_next(context);
 			}
 		} while (context->token_tail->type != endsym); // end
@@ -186,6 +187,7 @@ parse_statement(context_t *context)
 		assert(context, thensym); // then
 		/* FIXME this should only be valid in CLI mode */
 		if (context_next(context)->token_tail->type == period) {
+			context_prev(context);
 			prompt_step_in(context->prompt, "if> ");
 			context->depth++;
 			parse_statement(context_next(context));
@@ -200,14 +202,38 @@ parse_statement(context_t *context)
 	else if (context->token_tail->type == whilesym) { // while
 		token_t *token_hook = context->token_tail;
 		bool excute = context->excute;
+		bool is_multi_lined = false;
 		context->excute &= parse_condition(context_next(context));
-		do {
+
+		assert(context, dosym); // do
+		if (context_next(context)->token_tail->type == period) {
+			is_multi_lined = true;
+			context_prev(context);
+			prompt_step_in(context->prompt, "lp >");
+			context->depth++;
+			context_next(context);
+		}
+
+		parse_statement(context);
+		context->scan = false;
+
+		if (is_multi_lined) {
+			context->depth--;
+			prompt_step_out(context->prompt);
+		}
+
+		if (!context->excute) {
+			context->excute = excute;
+			return;
+		}
+
+		context->token_tail = token_hook;
+		while (context->excute &&
+		       parse_condition(context_next(context))) {
 			assert(context, dosym); // do
-			parse_statement(context_next(context)); // a := 1
-			context->scan = false;
+			parse_statement(context_next(context));
 			context->token_tail = token_hook;
-			excute = parse_condition(context_next(context));
-		} while (excute);
+		};
 		context->scan = true;
 		for (; context->token_tail->next;
 		     context->token_tail = context->token_tail->next)
