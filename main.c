@@ -51,6 +51,13 @@ print_help(char **argv)
 	printf("Usage: %s [options] [infile]\n", argv[0]);
 }
 
+#define prompt_reset()                                                         \
+	{                                                                      \
+		context = shm_attach(&shm[1]);                                 \
+		prompt_setup(context->prompt, "PL0> ");                        \
+		shm_dettach(&shm[1]);                                          \
+	}
+
 void
 cli_run()
 {
@@ -131,8 +138,8 @@ cli_run()
 				ident_dump(context);
 				fflush(stdout);
 				/* Dettach shared memories */
-				shm_detach(&shm[0]);
-				shm_detach(&shm[1]);
+				shm_dettach(&shm[0]);
+				shm_dettach(&shm[1]);
 				/* Exit with 0 if no error,
 					or 1 handled by interpreter */
 				exit(0);
@@ -185,11 +192,11 @@ cli_run()
 
 		if (timed_out) {
 			/* Rettach context */
-			shm_detach(&shm[1]);
+			shm_dettach(&shm[1]);
 			shm_attach(&shm[1]);
 			if (context->depth) {
 				/* Reattach prompt buffer */
-				shm_detach(&shm[2]);
+				shm_dettach(&shm[2]);
 				shm_attach(&shm[2]);
 				continue;
 			}
@@ -197,6 +204,7 @@ cli_run()
 			/* Let child thread bort */
 			kill(pid, SIGABRT);
 			fprintf(stderr, "interpreter timeout\n");
+			prompt_reset();
 		}
 
 		/* Child thread exited */
@@ -207,13 +215,15 @@ cli_run()
 			char *message = shm_attach(&shm[0]);
 			/* Print error message */
 			fprintf(stderr, "%s\n", message);
-			shm_detach(&shm[0]);
+			shm_dettach(&shm[0]);
+			prompt_reset()
 		} else if (WIFSTOPPED(status)) {
 			fprintf(stderr, "Child process stopped unexpectly\n");
+			prompt_reset();
 		}
 		process_count = 0;
 	}
-	shm_detach(&shm[1]);
+	shm_dettach(&shm[1]);
 }
 
 int
