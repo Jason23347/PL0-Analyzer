@@ -92,9 +92,18 @@ no_mem:
 }
 
 const context_t *
-context_top(const context_t *context)
+context_top_restrict(const context_t *context)
 {
 	const context_t *tmp;
+	for (tmp = context; tmp->prev; tmp = context->prev)
+		;
+	return tmp;
+}
+
+context_t *
+context_top(context_t *context)
+{
+	context_t *tmp;
 	for (tmp = context; tmp->prev; tmp = context->prev)
 		;
 	return tmp;
