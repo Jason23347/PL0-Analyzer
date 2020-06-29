@@ -24,6 +24,7 @@
 #include <readline/history.h>
 #include <sys/wait.h>
 #include <sys/time.h>
+#include <sys/signal.h>
 #include <sys/shm.h>
 
 #include "context.h"
