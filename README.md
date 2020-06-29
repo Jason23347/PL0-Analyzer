@@ -64,79 +64,26 @@ call primes
 
 ## Build
 
-### building with gcc/mingw
+### building with gcc
+Currently it is not compatiable to mingw.
 ```bash
 gcc -I. ./*.c -o analyzer
-# or
-x86_64-w64-mingw32-gcc -I. ./*.c -o analyzer
 ```
 
 ## Usage
+CLI mode:
+```bash
+./analyzer
+```
+
 Read from file:
 ```bash
-./analyzer inputfile [-o outputfile]
+./analyzer filename
 ```
 
-Read from stdin:
+Help:
 ```bash
-./analyzer -
-```
-
-## Tests
-```bash
-$ gcc -Wall -I. ./*.c -o analyzer && ./analyzer - <<<'a := 1'
-PL/0 Analizer Copyright 2020    ShuaiCheng Zhu
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-Lexical analysis result:
-
-+-----+--------------------+--------------------+
-|  No |             Symbol |        Symbol Type |
-+-----+--------------------+--------------------+
-|   1 |                  a |              ident |
-|   2 |                 := |            becomes |
-|   3 |                  1 |             number |
-+-----+--------------------+--------------------+
-
-Lexical and syntax analysis completed (0.000 secs)
-```
-
-```bash
-$ ./analyzer - <<END
-if a > b then
-123begin
-    a = a + 1;
-end;
-END
-PL/0 Analizer Copyright 2020    ShuaiCheng Zhu
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-lex:2:1: invalid symbol: 123begin
-```
-
-```bash
-$ ./analyzer - <<END
-if a > b then
-begin
-    a = a + 1;
-end
-END
-PL/0 Analizer Copyright 2020    ShuaiCheng Zhu
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-syntax:3:7: syntax error, expected becomes but got eql.
+./analyzer -h
 ```
 
 ## License
