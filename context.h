@@ -66,7 +66,8 @@ typedef struct {
 void context_init(context_t *context, FILE *instream, FILE *outstream);
 context_t *context_fork(context_t *parent);
 
-const context_t *context_top(const context_t *context);
+const context_t *context_top_restrict(const context_t *context);
+context_t *context_top(context_t *context);
 
 /**
  * Functions of tokens
