@@ -85,17 +85,3 @@ context_top(const context_t *context)
 	return tmp;
 }
 
-void
-context_free(context_t *context)
-{
-	token_t *token = context->tokens;
-
-	if (context->token_num >= PREALLOC_SYM_NUM) {
-		for (token = context->tokens[PREALLOC_SYM_NUM - 1].next;
-		     token != NULL; token++) {
-			token_t *tmp = token;
-			token = token->next;
-			free(tmp);
-		}
-	}
-}

@@ -62,7 +62,6 @@ typedef struct {
 } context_t;
 
 void context_init(context_t *context, FILE *instream, FILE *outstream);
-void context_free(context_t *context);
 context_t *context_fork(context_t *parent);
 
 const context_t *

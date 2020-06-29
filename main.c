@@ -62,7 +62,6 @@ cli_run()
 	context_t context[1];
 	int shmid;
 	int timed_out;
-	extern context_t *context_tail;
 
 	shm_t shm[3] = {
 		{ .len = MAX_CONTEXT_MSG_SIZE }, // message
@@ -99,7 +98,6 @@ cli_run()
 			token_init();
 			context_init(context, instream, stdout);
 			prompt_setup(context->prompt, "PL0> ");
-			context_tail = context;
 
 			/* Create a child thread */
 			pid = fork();
