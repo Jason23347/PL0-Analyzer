@@ -80,6 +80,9 @@ cli_run(char *filename)
 			}
 			if (!(instream = fdopen(fd[0], "r"))) {
 				perror("fdopen");
+
+				close(fd[0]);
+				close(fd[1]);
 				continue;
 			}
 
