@@ -49,6 +49,10 @@ context_prev(context_t *context)
 	context->token_tail = context->token_last_tail;
 	context->token_num--;
 
+	if (context->token_num > PREALLOC_SYM_NUM) {
+		free(context->token_last_tail);
+	}
+
 	return context;
 }
 
