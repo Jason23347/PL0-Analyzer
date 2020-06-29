@@ -31,10 +31,8 @@ typedef enum {
 
 typedef struct {
 	char name[MAX_IDENT_SIZE];
-	void *value;
+	size_t value;
 	IDENT type;
-
-	void *next;
 } ident_t;
 
 #endif /* INTERPRETER_H */

@@ -132,7 +132,7 @@ parse_statement(context_t *context)
 		assert(context_next(context), ident); // id
 		ident_t *id = ident_find(context, context->token_tail->value);
 		if (id) {
-			context_t *tmp = id->value;
+			context_t *tmp = (context_t *)id->value;
 			/* TODO not so elegant */
 			token_t t = { .next = tmp->tokens };
 			tmp->token_tail = &t;
@@ -236,7 +236,7 @@ parse_factor(context_t *context)
 				ident_uninitialized(id->name);
 			return 0;
 		}
-		ret = *(size_t *)id->value;
+		ret = (int)id->value;
 	}
 
 	else if (context->token_tail->type == number) // 1
