@@ -2,6 +2,9 @@
 
 一个简单的 PL/0 解释器
 
+词法分析截止到[6a988d2](https://github.com/jason23347/PL0-Analyzer/tree/6a988d2)
+语法分析截止到[a439d0b](https://github.com/jason23347/PL0-Analyzer/tree/a439d0b)
+
 ![example](images/example.png)
 
 ## Grammar
