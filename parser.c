@@ -174,8 +174,13 @@ parse_statement(context_t *context)
 			context_top(context)->depth++;
 			prompt_step_in(context_top(context)->prompt, ">> ");
 			context_prev(context);
+			context_next(context);
 		}
-		parse_statement(context_next(context)); // a := 1
+		parse_statement(context); // a := 1
+		if (is_multi_lined && context->token_tail->type == period) {
+			context_prev(context);
+			context_next(context);
+		}
 
 		/* Return when got an 'end' symbol,
 			or assumed to be a semicolon with afterward other statements */
