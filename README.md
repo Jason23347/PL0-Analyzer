@@ -62,13 +62,23 @@ call primes
 .
 ```
 
+## Dependencies
+
+### readline
+e.g. for Ubuntu
+```bash
+apt install libreadline-dev
+```
+
 ## Build
 
-### building with gcc
-Currently it is not compatiable to mingw.
+### GCC
 ```bash
-gcc -I. ./*.c -o analyzer
+gcc -I. ./*.c -o analyzer -lreadline
 ```
+
+### Mingw
+Mingw build will be considered in future.
 
 ## Usage
 CLI mode:
@@ -89,3 +99,10 @@ Help:
 ## License
 
 This project is under GPL-3.0 license.
+
+## Todos
+
+- [x] CLI mode
+- [ ] Read from file
+- [ ] Optimize parser
+- [ ] Seperate perser and interpreter, using AST
