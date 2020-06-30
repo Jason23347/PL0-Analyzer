@@ -178,6 +178,7 @@ parse_statement(context_t *context)
 		}
 		parse_statement(context); // a := 1
 		if (is_multi_lined && context->token_tail->type == period) {
+			prompt_step_out(context_top(context)->prompt);
 			context_prev(context);
 			context_next(context);
 		}
@@ -185,6 +186,9 @@ parse_statement(context_t *context)
 		/* Return when got an 'end' symbol,
 			or assumed to be a semicolon with afterward other statements */
 		if (context->token_tail->type == endsym) { // end
+			if (is_multi_lined) {
+				context_top(context)->depth--;
+			}
 			context_next(context);
 			return;
 		}
@@ -204,15 +208,12 @@ parse_statement(context_t *context)
 
 			if (is_multi_lined &&
 			    context->token_tail->type == period) {
+				context_top(context)->depth--;
+				prompt_step_out(context_top(context)->prompt);
 				context_prev(context);
 				context_next(context);
 			}
 		} while (context->token_tail->type != endsym); // end
-
-		if (is_multi_lined) {
-			context_top(context)->depth--;
-			prompt_step_out(context_top(context)->prompt);
-		}
 	}
 
 	else if (context->token_tail->type == ifsym) { // if
@@ -222,7 +223,7 @@ parse_statement(context_t *context)
 		/* FIXME this should only be valid in CLI mode */
 		if (context_next(context)->token_tail->type == period) {
 			context_prev(context);
-			prompt_step_in(context_top(context)->prompt, "if> ");
+			prompt_step_in(context_top(context)->prompt, "then> ");
 			context_top(context)->depth++;
 			parse_statement(context_next(context));
 			context_top(context)->depth--;
@@ -243,7 +244,7 @@ parse_statement(context_t *context)
 		if (context_next(context)->token_tail->type == period) {
 			is_multi_lined = true;
 			context_prev(context);
-			prompt_step_in(context_top(context)->prompt, "loop >");
+			prompt_step_in(context_top(context)->prompt, "while> ");
 			context_top(context)->depth++;
 			context_next(context);
 		}
