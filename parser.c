@@ -193,8 +193,9 @@ parse_statement(context_t *context)
 			if (!(context->token_tail->type == semicolon)) // ;
 				invalid_token_tail(context, endsym);
 
+			context_next(context);
 			if (is_multi_lined &&
-			    context_next(context)->token_tail->type == period) {
+			    context->token_tail->type == period) {
 				context_prev(context);
 				context_next(context);
 			}
