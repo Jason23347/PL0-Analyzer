@@ -26,7 +26,6 @@
 #include <sys/time.h>
 #include <time.h>
 #include <sys/signal.h>
-#include <pthread.h>
 
 #include "sharedmem.h"
 #include "context.h"
@@ -69,13 +68,6 @@ cli_run()
 	struct timeval start, end;
 	int timed_out;
 	context_t *context;
-	pthread_mutex_t lock[1];
-	pthread_mutexattr_t attr[1];
-
-	/* initialize mutex lock for context->depth */
-	pthread_mutexattr_init(attr);
-	pthread_mutexattr_settype(attr, PTHREAD_MUTEX_RECURSIVE_NP);
-	pthread_mutex_init(lock, attr);
 
 	shm_t shm[2] = {
 		{ .len = MAX_CONTEXT_MSG_SIZE }, // message
